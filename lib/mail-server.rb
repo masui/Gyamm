@@ -21,7 +21,7 @@ require 'lib/mail-session'
 require 'lib/util-safe'
 require 'lib/util-pid'
 
-class Server
+class MailServer
   include PidModule
   
   def initialize (config)
@@ -43,7 +43,13 @@ f.puts 5
 f.puts @config.bind_address
 f.puts @config.ml_port
 f.puts TCPServer
-    @server = TCPServer.new(@config.bind_address, @config.ml_port)
+      begin
+        @server = TCPServer.new(@config.bind_address, @config.ml_port)
+      rescue => evar
+        f.puts $!
+        f.puts evar
+      end
+
 f.puts 6
 
     log_file = (config[:log_dir].path + Logger::LOG_FILE).to_s

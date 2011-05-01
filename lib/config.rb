@@ -21,8 +21,8 @@ class Config
     :max_threads		=> 10,		# Number of working threads.
 
     # Server setting.
-    :user		=> 'daemon',
-    :group		=> 'daemon',
+    :user		=> 'daemon',  # daemon
+    :group		=> 'daemon', # daemon
     :bind_address	=> '0.0.0.0',
 #    :ml_port		=> 9195,
     :ml_port		=> 25,
