@@ -77,9 +77,6 @@ class Mail
   end
   
   def valid?
-puts "VALID?"
-p @recipients
-p @mail_from
     return (! @recipients.empty?) && !!@mail_from
   end
   

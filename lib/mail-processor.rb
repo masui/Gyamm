@@ -35,10 +35,10 @@ class Processor
   
   def process
     mail_log
-    if @mail.looping?
-      @logger.log "Looping Mail: from #{@mail.from}"
-      return
-    end
+#    if @mail.looping?
+#      @logger.log "Looping Mail: from #{@mail.from}"
+#      return
+#    end
     
     @mail.recipients.each {|recipient|
       process_recipient(recipient)
@@ -46,18 +46,18 @@ class Processor
   end
 
   def process_recipient(recipient)
-    frompath = @config[:gyamm_datadir] + "/" + @mail.mail_from
-    Pathname.new(frompath).check_directory
-    secretpath = frompath + "/" + MailAddress.name(recipient)
-    Pathname.new(secretpath).check_directory
-    datadirpath = secretpath + "/" + Time.parse(@mail['Date']).strftime('%Y%m%d%H%M%S')
-    Pathname.new(datadirpath).check_directory
-    datapath = datadirpath + "/" + "index.html"
+#    frompath = @config[:gyamm_datadir] + "/" + @mail.mail_from
+#    Pathname.new(frompath).check_directory
+#    secretpath = frompath + "/" + MailAddress.name(recipient)
+#    Pathname.new(secretpath).check_directory
+
+    path = @config[:gyamm_datadir] + "/" + MailAddress.name(recipient)
+    Pathname.new(path).check_directory
+
+    datapath = path + "/" + Time.parse(@mail['Date']).strftime('%Y%m%d%H%M%S')
 
     File.open(datapath,"w"){ |f|
-      f.puts "<pre>"
       f.print @mail.to_s
-      f.puts "</pre>"
     }
   end
   
