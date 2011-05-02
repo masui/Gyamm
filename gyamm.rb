@@ -5,9 +5,10 @@ require 'rubygems'
 require 'sinatra'
 require 'nkf'
 
-require 'lib/mail'
-require 'lib/mail-parse'
-require 'lib/mail-body'
+# require 'lib/mail'
+# require 'lib/mail-parse'
+# require 'lib/mail-body'
+require 'mime/mime'
 
 get '/:name' do |name|
   @name = name
@@ -23,9 +24,9 @@ get '/:name' do |name|
       text = File.read("#{path}/#{id}")
       @mail = Mail.new
       @mail.read(text)
-      @from[id] = @mail['From'].toutf8
-      @to[id] = @mail['To'].toutf8
-      @subject[id] = @mail['Subject'].toutf8
+      @from[id] = @mail['From'].to_s.toutf8
+      @to[id] = @mail['To'].to_s.toutf8
+      @subject[id] = @mail['Subject'].to_s.toutf8
     }
     erb :folder
   else
@@ -62,33 +63,13 @@ get '/:name/:id' do |name,id|
   @text = (File.exists?(file) ? File.read(file) : '')
   @mail = Mail.new
   @mail.read(@text)
-  @from = @mail['From'].toutf8
-  @to = @mail['To'].toutf8
-  @subject = @mail['Subject'].toutf8
-  if false && @mail.multipart? then
-    content = ''
-    @mail.each_part {|sub_mail|
-      if sub_mail.plain_text_body?
-        c = sub_mail.decoded_body.normalize_eol
-        c = c.set_mail_charset.to_page_charset
-        content << c
-      else
-        filename = sub_mail.filename
-        decoded_body = sub_mail.decoded_body
-        if filename && decoded_body
-#          msg = GroupSite.attach(site, key, filename, decoded_body)
-          msg = "<<<#{filename}>>>\n"
-          content << msg
-        else
-          content << decoded_body
-        end
-      end
-    }
-    return content
-  else
-    @body = @mail.body.toutf8
-    erb :plain
-  end
+  @mail.prepare_aux_files("/Users/masui/Gyamm/public/tmp")
+  @from = @mail['From'].to_s.toutf8
+  @to = @mail['To'].to_s.toutf8
+  @subject = @mail['Subject'].to_s.toutf8
+  @html = @mail.dump
+  @body = @mail.body.toutf8
+  erb :plain
 end
 
 get '/:name/:id/' do |name,id|

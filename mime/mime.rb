@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-# qwikのmail-*.rbがワケがわからなくなってきたので、メールの
-# 解析とMIMEデコードを自力でやってみることにする
+#  qwikのmail-*.rbがワケがわからなくなってきたので、メールの
+#  解析とMIMEデコードを自力でやってみることにする
 #
-# 2011/5/2 masui
+#  デコード部分を少しqwikiソースから流用している
+#
+#  2011/5/2 masui
 #
 require 'nkf'
 require 'base64'
@@ -49,7 +51,9 @@ class Mail
         @header.last[1] += ("\n" + line)
       end
     }
-
+    #
+    # MIMEの木構造も解析する
+    #
     make_tree(self)
   end
 
@@ -288,7 +292,7 @@ class Mail
           if child['Content-Type'] =~ /multipart/ then
             mail.html += _dump(child)
           elsif child['Content-Type'] =~ /text\/plain/ then
-            mail.html += ("<pre>" + child.decode_body + "</pre>\n")
+            mail.html += ("<pre>" + NKF.nkf("-w",child.decode_body) + "</pre>\n")
           elsif child['Content-Type'] =~ /text\/html/ then
             mail.html += child.decode_body
           else
@@ -306,12 +310,16 @@ class Mail
               cidstr = $1
               html.gsub!(/#{Regexp.escape(cidstr)}/,"#{filename}")
             end
-            mail.html += html
+            mail.html += NKF.nkf('-w',html)
           end
         }
       end
     else
-      mail.html += "<pre>" + mail.decode_body + "</pre>\n"
+      if mail['Content-Type'] =~ /text\/plain/ then
+        mail.html += "<pre>" + NKF.nkf('-w',mail.decode_body) + "</pre>\n"
+      else
+        mail.html += NKF.nkf('-w',mail.decode_body)
+      end
     end
     return mail.html
   end
