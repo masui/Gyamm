@@ -5,3 +5,13 @@
    そのままでは使えない。
  - QuickMLとかQwikとかいうモジュール名も困る
  - これらを全部消したフラットな感じで使いたいと思う
+
+
+
+* Gyammメールサーバの再起動
+  - sudo kill -9 (gyamm-server)
+  - sudo ruby bin/gyamm-server
+
+* Gyamm Webの再起動
+  - sudo apachectl restart
+

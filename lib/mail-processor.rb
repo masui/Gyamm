@@ -35,24 +35,16 @@ class Processor
   
   def process
     mail_log
-#    if @mail.looping?
-#      @logger.log "Looping Mail: from #{@mail.from}"
-#      return
-#    end
-    
+
     @mail.recipients.each {|recipient|
       process_recipient(recipient)
     }
   end
 
   def process_recipient(recipient)
-#    frompath = @config[:gyamm_datadir] + "/" + @mail.mail_from
-#    Pathname.new(frompath).check_directory
-#    secretpath = frompath + "/" + MailAddress.name(recipient)
-#    Pathname.new(secretpath).check_directory
-
     path = @config[:gyamm_datadir] + "/" + MailAddress.name(recipient)
     Pathname.new(path).check_directory
+    Pathname.new(path).chmod(0777)
 
     datapath = path + "/" + Time.parse(@mail['Date']).strftime('%Y%m%d%H%M%S')
 

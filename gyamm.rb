@@ -16,10 +16,13 @@ get '/:name' do |name|
   if File.exists?(path) && File.directory?(path) then
     @ids = Dir.open(path).find_all { |e|
       e =~ /^\d{14}$/
+    }.sort { |a,b|
+      b <=> a
     }
     @from = {}
     @to = {}
     @subject = {}
+    @date = {}
     @ids.each { |id|
       text = File.read("#{path}/#{id}")
       @mail = Mail.new
@@ -27,8 +30,14 @@ get '/:name' do |name|
       @from[id] = @mail['From'].to_s.toutf8
       @to[id] = @mail['To'].to_s.toutf8
       @subject[id] = @mail['Subject'].to_s.toutf8
+      id =~ /^(....)(..)(..)/
+      y = $1
+      m = $2
+      d = $3
+      @date[id] = "#{y}/#{m.sub(/^0+/,'')}/#{d.sub(/^0+/,'')}"
     }
-    erb :folder
+    @id = id
+    erb :list
   else
     ''
   end
@@ -52,10 +61,14 @@ get '/:name/' do |name|
       @to[id] = @mail['To'].toutf8
       @subject[id] = @mail['Subject'].toutf8
     }
-    erb :folder
+    erb :list
   else
     ''
   end
+end
+
+get '/:name/recover' do |name|
+  redirect "/#{name}"
 end
 
 get '/:name/:id' do |name,id|
@@ -69,6 +82,8 @@ get '/:name/:id' do |name,id|
   @subject = @mail['Subject'].to_s.toutf8
   @html = @mail.dump
   @body = @mail.body.toutf8
+  @id = id
+  @name = name
   erb :plain
 end
 
@@ -77,11 +92,38 @@ get '/:name/:id/' do |name,id|
   @text = (File.exists?(file) ? File.read(file) : '')
   @mail = Mail.new
   @mail.read(@text)
+  @mail.prepare_aux_files("/Users/masui/Gyamm/public/tmp")
+  @from = @mail['From'].to_s.toutf8
+  @to = @mail['To'].to_s.toutf8
+  @subject = @mail['Subject'].to_s.toutf8
+  @html = @mail.dump
   @body = @mail.body.toutf8
-  @from = @mail['From'].toutf8
-  @to = @mail['To'].toutf8
-  @subject = @mail['Subject'].toutf8
-
+  @id = id
+  @name = name
   erb :plain
+end
+
+get '/:name/:id/delete' do |name,id|
+  listfile = "/Users/masui/Gyamm/data/#{name}/deletefiles"
+  if !File.exists?(listfile) then
+    File.open(listfile,"w"){ |f|
+      f.puts ""
+    }
+  end
+  ids = []
+  ids << id
+  File.open(listfile){ |f|
+    f.each { |line|
+      line.chomp!
+      next if line !~ /\d{14}/
+      ids << line if line != id
+    }
+  }
+  File.open(listfile,"w"){ |f|
+    ids.each { |id|
+      f.puts id
+    }
+  }
+  redirect "/#{name}"
 end
 
