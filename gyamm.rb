@@ -5,17 +5,25 @@ require 'rubygems'
 require 'sinatra'
 require 'nkf'
 
-# require 'lib/mail'
-# require 'lib/mail-parse'
-# require 'lib/mail-body'
-require 'mime/mime'
+require 'gyamm/mime'
 
 get '/:name' do |name|
   @name = name
+  deleted_ids = {}
+  listfile = "/Users/masui/Gyamm/data/#{name}/deletefiles"
+  if File.exists?(listfile) then
+    File.open(listfile){ |f|
+      f.each { |line|
+        line.chomp!
+        deleted_ids[line] = true
+      }
+    }
+  end
+
   path = "/Users/masui/Gyamm/data/#{@name}"
   if File.exists?(path) && File.directory?(path) then
     @ids = Dir.open(path).find_all { |e|
-      e =~ /^\d{14}$/
+      e =~ /^\d{14}$/ && ! deleted_ids[e]
     }.sort { |a,b|
       b <=> a
     }
@@ -68,6 +76,23 @@ get '/:name/' do |name|
 end
 
 get '/:name/recover' do |name|
+  listfile = "/Users/masui/Gyamm/data/#{name}/deletefiles"
+  if File.exists?(listfile) then
+    ids = []
+    File.open(listfile){ |f|
+      f.each { |line|
+        line.chomp!
+        next if line !~ /\d{14}/
+        ids << line if line != id
+      }
+    }
+    ids.shift
+    File.open(listfile,"w"){ |f|
+      ids.each { |id|
+        f.puts id
+      }
+    }
+  end
   redirect "/#{name}"
 end
 
@@ -127,3 +152,11 @@ get '/:name/:id/delete' do |name,id|
   redirect "/#{name}"
 end
 
+get '/:name/:id/text' do |name,id|
+  file = "/Users/masui/Gyamm/data/#{name}/#{id}"
+  @name = name
+  @id = id
+  @text = (File.exists?(file) ? File.read(file) : '')
+  @text.gsub!(/</,'&lt;')
+  erb :text
+end

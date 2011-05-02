@@ -6,7 +6,11 @@
   </head>
   <body>
     <div class='top'>
-      <div class="delete"><a href="/<%= @name %>/<%= @id %>/delete">このメッセージを削除</a></div>
+      <div class="delete">
+        <a href="/<%= @name %>">TOP</a>&nbsp;
+        <a href="/<%= @name %>/<%= @id %>/text">メールテキスト表示</a>&nbsp;
+        <a href="/<%= @name %>/<%= @id %>/delete">このメッセージを削除</a>
+      </div>
     </div>
     <br clear="all">
     <div class='header'>
