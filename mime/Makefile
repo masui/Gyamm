@@ -1,2 +1,2 @@
-test:
+alltest:
 	ruby mime.rb

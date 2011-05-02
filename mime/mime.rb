@@ -11,6 +11,8 @@ require 'base64'
 class Mail
   def initialize
     @header = []     # @header = [['Date', 'Mon, 02 May 2011 07:44:13 +0900'], ...]
+    @cid2file = {}
+    @html = ''
   end
   
   attr_accessor :bare    # メールの生テキスト
@@ -19,6 +21,8 @@ class Mail
 
   attr_accessor :data    # MIMEの階層構造を扱うために導入
                          # Mailクラスの配列またはbody文字列
+  attr_accessor :cid2file
+  attr_accessor :html
 
   def read(text)
     # 生テキスト
@@ -45,6 +49,8 @@ class Mail
         @header.last[1] += ("\n" + line)
       end
     }
+
+    make_tree(self)
   end
 
   #
@@ -93,8 +99,10 @@ class Mail
     return parts
   end
 
-  #
-  # http://www.atmarkit.co.jp/fnetwork/rensai/netpro04/netpro01.html
+  def filename
+    filename_from_content_disposition || filename_from_content_type
+  end
+
   #
   # Content-Dispositionにはこういう文字列が入る
   # Content-Disposition: attachment;
@@ -111,12 +119,13 @@ class Mail
   #  filename*1="U09_.jpg"
   #
   # これはRFC2231とかいうやつで、頑張ってデコードしなきゃ駄目らしい
+  # http://www.atmarkit.co.jp/fnetwork/rensai/netpro04/netpro01.html
   # http://www.emaillab.org/win-mailer/exp-japanese.html
   #
   def filename_from_content_disposition
     s = self['Content-Disposition']
     return nil if s.nil?
-#puts "<<<<" + s + ">>>>"
+    s = s.dup
     decode = false
     code = ''
     lang = ''
@@ -174,12 +183,16 @@ class Mail
       while s.sub!(/=\?(\S+)\?([QB])\?(.*)\?=/,'') do
         code = $1
         method = $2
-        name += (method == 'B' ? Base64.decode64($3) : decode_quoted_printable($3))
+        name += (method == 'B' ? decode_base64($3) : decode_quoted_printable($3))
       end
       return name
     else
       return s
     end
+  end
+
+  def decode_base64(str)
+    return Base64.decode64(str)
   end
 
   def decode_quoted_printable(str)
@@ -195,23 +208,112 @@ class Mail
     return str
   end
 
-  def make_tree(text)
-    self.read(text)
-    _make_tree(self)
+  def decode_uuencode(str)
+    uu = ''
+    str.each {|line|
+      next  if /\Abegin/ =~ line
+      break if /\Aend/ =~ line
+      uu << line
+    }
+    return uu.unpack('u').first
   end
 
-  def _make_tree(mail)
+  def decode_body
+    enc = self['Content-Transfer-Encoding']
+    return decode_base64(@body) if /base64/i =~ enc
+    return decode_uuencode(@body) if /x-uuencode/i =~ enc
+    return decode_quoted_printable(@body) if /quoted-printable/i =~ enc
+    return body
+  end
+
+  def make_tree(mail)
     if mail.multipart? then
       parts = mail.split
       mail.data = parts.collect { |text|
         child = Mail.new
         child.read(text)
-        _make_tree(child)
+        make_tree(child)
       }
     else
       mail.data = mail.body
     end
     return mail
+  end
+
+  def prepare_aux_files(tmpdir)
+    @cid2file = {}
+    _prepare_aux_files(self,@cid2file,tmpdir)
+  end
+
+  def _prepare_aux_files(mail,cid2file,tmpdir)
+    return if mail.body.size == 0
+    if mail.data.class == Array then
+      mail.data.each { |child|
+        _prepare_aux_files(child,cid2file,tmpdir)
+      }
+    else
+      cid = mail['Content-ID']
+      filename = mail.filename
+      if filename then
+        File.open(tmpdir+"/"+filename,"w"){ |f|
+          f.print mail.decode_body
+        }
+        if cid then
+          cid.sub!(/^</,'')
+          cid.sub!(/>$/,'')
+          cid2file[cid] = filename
+        end
+      end
+    end
+  end
+
+  def dump
+    _dump(self)
+  end
+
+  def _dump(mail)
+    return if mail.body.size == 0
+    if mail.data.class == Array then
+      if mail['Content-Type'] =~ /multipart\/alternative/ then  # プレーンテキストとHTML混在の場合など
+        # 代表を決める
+        rep = 0
+        mail.data.each_with_index { |child,i|
+          if child['Content-Type'] !~ /text\/plain/ then
+            rep = i
+          end
+        }
+        mail.html += _dump(mail.data[rep])
+      elsif mail['Content-Type'] =~ /multipart\/mixed/ then # 添付ファイルなど
+        mail.data.each { |child|
+          if child['Content-Type'] =~ /multipart/ then
+            mail.html += _dump(child)
+          elsif child['Content-Type'] =~ /text\/plain/ then
+            mail.html += ("<pre>" + child.decode_body + "</pre>\n")
+          elsif child['Content-Type'] =~ /text\/html/ then
+            mail.html += child.decode_body
+          else
+            mail.html += "<a href='/tmp/#{child.filename}'>#{child.filename}</a><br>"
+          end
+        }
+      elsif mail['Content-Type'] =~ /multipart\/related/ then
+        mail.data.each { |child|
+          if child['Content-Disposition'] =~ /inline/ then
+            # ファイルはインラインで表示される
+          else
+            html = child.decode_body
+            while html =~ /"(cid:([^"]+))"/ do
+              filename = "/tmp/#{@cid2file[$2]}"
+              cidstr = $1
+              html.gsub!(/#{Regexp.escape(cidstr)}/,"#{filename}")
+            end
+            mail.html += html
+          end
+        }
+      end
+    else
+      mail.html += "<pre>" + mail.decode_body + "</pre>\n"
+    end
+    return mail.html
   end
 end
 
@@ -319,7 +421,7 @@ if defined?($test) && $test
       TESTFILES.each { |testfile|
         mail = Mail.new
         text = File.read(testfile)
-        mail.make_tree(text)
+        mail.read(text)
         _test_tree(mail)
       }
     end
@@ -354,7 +456,7 @@ if defined?($test) && $test
       TESTFILES.each { |testfile|
         mail = Mail.new
         text = File.read(testfile)
-        mail.make_tree(text)
+        mail.read(text)
         _test_filename(mail)
       }
     end
@@ -369,39 +471,37 @@ if defined?($test) && $test
         # puts mail['Content-Disposition']
         # mail.filename
         # puts mail['Content-Type']
-        puts mail.filename_from_content_type
-        puts mail.filename_from_content_disposition
+        assert_equal mail.filename_from_content_type, mail.filename_from_content_disposition
       end
     end
 
-#    #
-#    # MIMEの入れ子構造をたどるテスト
-#    #
-#    def test_recursive
-#      TESTFILES.each { |testfile|
-#        text = File.read(testfile)
-#        _test_recursive(text)
-#      }
-#    end
-#
-#    def _test_recursive(text)
-#      mail = Mail.new
-#      mail.read(text)
-#      if mail.multipart? then
-#        parts = mail.split
-#        assert parts != nil
-#        assert parts.class == Array
-#        mail.data = parts.collect { |text|
-#          assert text.class == String
-#          assert text.length > 0
-#          _test_recursive(text)
-#        }
-#      else
-#        mail.data = mail.body
-#      end
-#      return mail
-#    end
-
+    def test_aux_files
+      tmpdir = "/tmp/mime#{$$}"
+      Dir.mkdir(tmpdir)
+      mail = Mail.new
+      text = File.read(TESTFILE1)
+      mail.read(text)
+      mail.prepare_aux_files(tmpdir)
+      auxfiles = [
+                  "25930913.jpg",
+                  "56381097.jpg",
+                  "66578592.jpg",
+                  "69693880.jpg",
+                  "7696614.jpg",
+                  "9771903.jpg",
+                  "facebook_16_16.png",
+                  "su_16_16.png",
+                  "twitter_16_16.png",
+                 ]
+      createdfiles = {}
+      Dir.open(tmpdir).each { |file|
+        createdfiles[file] = true
+      }
+      auxfiles.each { |auxfile|
+        assert createdfiles[auxfile]
+      }
+      system "/bin/rm -r -f #{tmpdir}"
+    end
 
   end
 end
