@@ -9,8 +9,27 @@ require 'gyamm/mime'
 require 'gyamm/config'
 require 'gyamm/delete'
 require 'gyamm/lib'
+require 'gyamm/lock'
+
+helpers do
+  def protected!(addr,name)
+    unless authorized?(addr,name)
+      response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
+      throw(:halt, [401, "Not authorized\n"])
+    end
+  end
+
+  def authorized?(addr,name)
+    @auth ||=  Rack::Auth::Basic::Request.new(request.env)
+    lock = Lock.new(addr,name)
+    return true unless lock.locked?
+    @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == [addr, lock.password]
+  end
+end
+
 
 get '/:name' do |name|
+  protected!('masui@pitecan.com',name)
   disp_list(name)
 end
 

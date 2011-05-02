@@ -44,7 +44,7 @@ class Processor
   def process_recipient(recipient)
     path = @config[:gyamm_datadir] + "/" + MailAddress.name(recipient)
     Pathname.new(path).check_directory
-    Pathname.new(path).chmod(0777)
+    Pathname.new(path).chmod(0777) # Web‚©‚ç‘‚«‚İ‚Å‚«‚é‚æ‚¤‚É
 
     datapath = path + "/" + Time.parse(@mail['Date']).strftime('%Y%m%d%H%M%S')
 

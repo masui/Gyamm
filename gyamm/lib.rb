@@ -1,3 +1,7 @@
+$LOAD_PATH << '..' unless $LOAD_PATH.include? '..'
+
+require 'gyamm/config'
+
 def disp_list(name)
   @name = name
 
