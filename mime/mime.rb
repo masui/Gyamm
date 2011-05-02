@@ -8,14 +8,15 @@
 
 class Mail
   def initialize
-    @bare = nil      # メールの生テキスト
     @header = []     # @header = [['Date', 'Mon, 02 May 2011 07:44:13 +0900'], ...]
-    @body = ''
   end
   
-  attr_accessor :bare
-  attr_accessor :header
-  attr_accessor :body
+  attr_accessor :bare    # メールの生テキスト
+  attr_accessor :header  # ヘッダ配列
+  attr_accessor :body    # body文字列
+
+  attr_accessor :data    # MIMEの階層構造を扱うために導入
+                         # Mailクラスの配列またはbody文字列
 
   def read(text)
     # 生テキスト
@@ -51,7 +52,7 @@ class Mail
     field = @header.find { |field|
       key.downcase == field.first.downcase
     }
-    return '' if field.nil?
+    return nil if field.nil?
     return field.last
   end
 
@@ -88,6 +89,25 @@ class Mail
     parts.pop if /\A\s*\z/ =~ parts.last
     return parts
   end
+
+  def make_tree(text)
+    self.read(text)
+    _make_tree(self)
+  end
+
+  def _make_tree(mail)
+    if mail.multipart? then
+      parts = mail.split
+      mail.data = parts.collect { |text|
+        child = Mail.new
+        child.read(text)
+        _make_tree(child)
+      }
+    else
+      mail.data = mail.body
+    end
+    return mail
+  end
 end
 
 if $0 == __FILE__
@@ -100,7 +120,10 @@ if defined?($test) && $test
   TESTFILE1 = GYAMMDIR + "/masui_test/20110501212905" # StumbleUpon
   TESTFILE2 = GYAMMDIR + "/masui_test/20110502075633" # Amazon
   TESTFILE3 = GYAMMDIR + "/masui_test/20110502074413" # 未踏
-  TESTFILES = [TESTFILE1, TESTFILE2, TESTFILE3]
+  TESTFILES = []
+  TESTFILES << TESTFILE1
+  TESTFILES << TESTFILE2
+  TESTFILES << TESTFILE3
 
   class TestMime < Test::Unit::TestCase
     def test_bare
@@ -186,9 +209,72 @@ if defined?($test) && $test
         assert parts[0].class == String
       }
     end
+
+    def test_tree
+      TESTFILES.each { |testfile|
+        mail = Mail.new
+        text = File.read(testfile)
+        mail.make_tree(text)
+        _test_tree(mail)
+      }
+    end
+
+    def _test_tree(mail)
+      return if mail.body.size == 0
+      if mail.data.class == Array then
+        mail.data.each { |child|
+          _test_tree(child)
+        }
+        assert mail.header.class == Array
+        assert mail.body.class == String
+        assert mail.data.class == Array
+        assert mail.data.length > 0
+        # puts mail['Content-Type']
+        assert mail['Content-Type'] =~ /multipart/
+      else
+        assert mail.header.class == Array
+        assert mail.body.class == String
+        assert mail.data.class == String
+        assert mail.data.length > 0
+        # puts mail['Content-Type']
+        assert mail['Content-Type'] =~ /(text|image|application)/ # 他にもあるかも
+        if mail['Content-Disposition'] then
+          assert mail['Content-Disposition'] =~ /(inline|attachment)/
+        end
+      end
+    end
+
+#    #
+#    # MIMEの入れ子構造をたどるテスト
+#    #
+#    def test_recursive
+#      TESTFILES.each { |testfile|
+#        text = File.read(testfile)
+#        _test_recursive(text)
+#      }
+#    end
+#
+#    def _test_recursive(text)
+#      mail = Mail.new
+#      mail.read(text)
+#      if mail.multipart? then
+#        parts = mail.split
+#        assert parts != nil
+#        assert parts.class == Array
+#        mail.data = parts.collect { |text|
+#          assert text.class == String
+#          assert text.length > 0
+#          _test_recursive(text)
+#        }
+#      else
+#        mail.data = mail.body
+#      end
+#      return mail
+#    end
+
+
   end
 end
-
 
 
 
