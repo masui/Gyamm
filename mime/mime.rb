@@ -71,6 +71,7 @@ class Mail
   #
   # Content-Typeに指定されているバウンダリ文字列を取得
   # 古いqwikに不具合があったのを指摘されて直したものらしい
+  # https://www.codeblog.org/blog/ryu/?date=20060112#p01
   #
   def boundary
     content_type = self['Content-Type']
@@ -271,6 +272,9 @@ class Mail
     end
   end
 
+  #
+  # HTMLを吐く
+  #
   def dump
     _dump(self)
   end
