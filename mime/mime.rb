@@ -226,8 +226,8 @@ if defined?($test) && $test
   TESTFILE2 = GYAMMDIR + "/masui_test/20110502075633" # Amazon
   TESTFILE3 = GYAMMDIR + "/masui_test/20110502074413" # 未踏
   TESTFILES = []
-#  TESTFILES << TESTFILE1
-#  TESTFILES << TESTFILE2
+  TESTFILES << TESTFILE1
+  TESTFILES << TESTFILE2
   TESTFILES << TESTFILE3
 
   class TestMime < Test::Unit::TestCase
