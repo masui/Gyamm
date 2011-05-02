@@ -1,0 +1,2 @@
+all:
+	ruby delete.rb

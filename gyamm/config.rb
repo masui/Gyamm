@@ -1,0 +1,1 @@
+ROOTDIR = "/Users/masui/Gyamm"
