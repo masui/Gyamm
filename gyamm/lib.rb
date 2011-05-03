@@ -11,11 +11,11 @@ def disp_list(name)
 
   path = "#{ROOTDIR}/data/#{@name}"
   if File.exists?(path) && File.directory?(path) then
-    @ids = Dir.open(path).find_all { |e|
-      # e =~ /^\d{14}$/ && ! deleted_ids[e]
-      e =~ /^\d{14}$/ && ! d.deleted?(e)
+    visited = {}
+    @ids = Dir.open(path).find_all { |id|
+      id =~ /^\d{14}$/ && ! d.deleted?(id)
     }.sort { |a,b|
-      b <=> a
+      File.mtime("#{path}/#{b}") <=> File.mtime("#{path}/#{a}")
     }
     @from = {}
     @to = {}
@@ -28,13 +28,13 @@ def disp_list(name)
       @from[id] = @mail['From'].to_s.toutf8
       @to[id] = @mail['To'].to_s.toutf8
       @subject[id] = @mail['Subject'].to_s.toutf8
-#      id =~ /^(....)(..)(..)/
-#      y = $1
-#      m = $2
-#      d = $3
-#      @date[id] = "#{y}/#{m.sub(/^0+/,'')}/#{d.sub(/^0+/,'')}"
-      time = Time.parse(@mail['Date'])
-      @date[id] = "#{time.year}/#{time.mon}/#{time.day}"
+      id =~ /^(....)(..)(..)/
+      y = $1
+      m = $2
+      d = $3
+      @date[id] = "#{y}/#{m.sub(/^0+/,'')}/#{d.sub(/^0+/,'')}"
+#      time = Time.parse(@mail['Date'])
+#      @date[id] = "#{time.year}/#{time.mon}/#{time.day}"
     }
     @id = id
     erb :list

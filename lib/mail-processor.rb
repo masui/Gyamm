@@ -67,6 +67,7 @@ class Processor
     File.open(datapath,"w"){ |f|
       f.print @mail.to_s
     }
+    File.chmod(0666,datapath)
   end
   
   private

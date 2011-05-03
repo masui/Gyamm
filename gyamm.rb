@@ -4,6 +4,7 @@
 require 'rubygems'
 require 'sinatra'
 require 'nkf'
+require 'fileutils'
 
 require 'gyamm/mime'
 require 'gyamm/config'
@@ -79,15 +80,8 @@ end
 
 get '/:name/:id/top' do |name,id|
   protected!(name)
-  # ファイルをリネームする作戦
-  # URLが変わってしまうのは非常にマズい
-  dir = "#{ROOTDIR}/data/#{name}"
-  oldfile = "#{dir}/#{id}"
-  newid = Time.now.strftime('%Y%m%d%H%M%S')
-  newfile = "#{dir}/#{newid}"
-  if File.exists?(oldfile) then
-    File.rename(oldfile,newfile)
-  end
+  file = "#{ROOTDIR}/data/#{name}/#{id}"
+  FileUtils.touch(file)
   redirect "/#{name}"
 end
 
