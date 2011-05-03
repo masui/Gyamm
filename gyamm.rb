@@ -11,6 +11,10 @@ require 'gyamm/delete'
 require 'gyamm/lib'
 require 'gyamm/lock'
 
+#
+# Basic認証のためのヘルパー
+# (ヘルパーにする必要があるのか不明)
+#
 helpers do
   def protected!(name)
     unless authorized?(name)
@@ -26,7 +30,6 @@ helpers do
     @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == [lock.addr, lock.password]
   end
 end
-
 
 get '/:name' do |name|
   protected!(name)
@@ -73,3 +76,16 @@ get '/:name/:id/text' do |name,id|
   @text.gsub!(/</,'&lt;')
   erb :text
 end
+
+get '/:name/:id/top' do |name,id|
+  protected!(name)
+  dir = "#{ROOTDIR}/data/#{name}"
+  oldfile = "#{dir}/#{id}"
+  newid = Time.now.strftime('%Y%m%d%H%M%S')
+  newfile = "#{dir}/#{newid}"
+  if File.exists?(oldfile) then
+    File.rename(oldfile,newfile)
+  end
+  redirect "/#{name}"
+end
+

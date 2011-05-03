@@ -50,11 +50,18 @@ class Processor
 
     datapath = path + "/" + Time.parse(@mail['Date']).strftime('%Y%m%d%H%M%S')
 
-    # Lockˆ—
-    if @mail['Subject'] =~ /lock:\s*(\w+)/i then
+    # Lock/Unlockˆ—
+    # Subject: lock password  ==> Basic”FØİ’è
+    # Subject: unlock         ==> ”FØ‰ğœ
+    if @mail['Subject'] =~ /^unlock/i then
+      lock = Lock.new(MailAddress.name(recipient))
+      lock.unlock(@mail.mail_from)
+      return
+    elsif @mail['Subject'] =~ /^lock:?\s*(\w+)/i then
       password = $1
       lock = Lock.new(MailAddress.name(recipient))
       lock.lock(@mail.mail_from, password)
+      return
     end
 
     File.open(datapath,"w"){ |f|
