@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+#
+# Gyammのパスワード処理
+#
+# ロックファイルにメールアドレスとパスワードを書いておき、
+# 同じメールアドレスからの要求は受け付ける。
+#
 $LOAD_PATH << '..' unless $LOAD_PATH.include? '..'
 
 require 'gyamm/config'
@@ -42,10 +48,10 @@ class Lock
     return false
   end
 
-  def unlock(addr, password)
+  def unlock(addr)
     return true if !locked?
     getinfo
-    if addr == @addr && password == @password then
+    if addr == @addr then
       File.unlink(@lockfile)
       return true
     end
@@ -81,17 +87,16 @@ if defined?($test) && $test
 
     def test_unlock
       lock = Lock.new('masui_test', TESTLOCK)
-      assert lock.unlock("masui@pitecan.com", "xxxx")
-      assert lock.unlock("dummy","dummy")
+      assert lock.unlock("masui@pitecan.com")
+      assert lock.unlock("dummy")
       assert lock.lock("masui@pitecan.com", "secret")
       assert lock.locked?
-      assert lock.unlock("masui@pitecan.com", "secret")
+      assert lock.unlock("masui@pitecan.com")
       assert ! lock.locked?
       assert lock.lock("masui@pitecan.com", "secret")
-      assert ! lock.unlock("masui@acm.org", "secret")
+      assert ! lock.unlock("masui@acm.org")
       assert lock.locked?
-      assert ! lock.unlock("masui@pitecan.com", "xxxx")
-      assert lock.unlock("masui@pitecan.com", "secret")
+      assert lock.unlock("masui@pitecan.com")
       assert ! lock.locked?
     end
 
