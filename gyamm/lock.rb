@@ -4,38 +4,52 @@ $LOAD_PATH << '..' unless $LOAD_PATH.include? '..'
 require 'gyamm/config'
 
 class Lock
-  def initialize(addr, name, lockfile="#{ROOTDIR}/data/#{name}/lockfile")
-    @addr = addr
+  def initialize(name, lockfile="#{ROOTDIR}/data/#{name}/lockfile")
     @name = name
     @lockfile = lockfile
-    @password = ''
-    if locked? then
-      File.open(@lockfile){ |f|
-        @lockaddr = f.gets.chomp
-        @password = f.gets.chomp
-      }
-    end
+    getinfo
   end
+
+  attr_reader :addr, :password
 
   def locked?
     File.exists?(@lockfile)
   end
 
-  def lock(password)
-    if @addr == @lockaddr || !locked? then
+  def getinfo
+    @addr = ''
+    @password = ''
+    if locked? then
+      File.open(@lockfile){ |f|
+        @addr = f.gets.chomp
+        @password = f.gets.chomp
+      }
+    end
+  end
+
+  def lock(addr, password)
+    getinfo
+    if addr == @addr || !locked? then
       File.open(@lockfile,"w"){ |f|
-        f.puts @addr
+        f.puts addr
         f.puts password
       }
-      @lockaddr = @addr
+      File.chmod(0777,@lockfile)
+      @addr = addr
       @password = password
       return true  # 成功
     end
     return false
   end
 
-  def password
-    @password
+  def unlock(addr, password)
+    return true if !locked?
+    getinfo
+    if addr == @addr && password == @password then
+      File.unlink(@lockfile)
+      return true
+    end
+    return false
   end
 end
 
@@ -46,26 +60,43 @@ end
 
 if defined?($test) && $test
   class TestLock < Test::Unit::TestCase
+    TESTLOCK = "/tmp/locktest"
+    
     def setup
-      File.unlink("/tmp/locktest") if File.exists?("/tmp/locktest")
+      File.unlink(TESTLOCK) if File.exists?(TESTLOCK)
     end
 
     def test_lock
-      lock = Lock.new('masui@pitecan.com', 'masui_test', "/tmp/locktest")
+      lock = Lock.new('masui_test', TESTLOCK)
       assert ! lock.locked?
-      assert lock.lock("secret")
+      assert lock.lock("masui@pitecan.com", "secret")
       assert lock.locked?
-      assert lock.lock("secret2")
+      assert lock.lock("masui@pitecan.com", "secret2")
       assert lock.locked?
 
-      lock2 = Lock.new('masui@acm.org', 'masui_test', "/tmp/locktest")
+      lock2 = Lock.new('masui_test', TESTLOCK)
       assert lock2.locked?
-      assert ! lock2.lock("secret3")
+      assert ! lock2.lock("masui@acm.org", "secret3")
+    end
+
+    def test_unlock
+      lock = Lock.new('masui_test', TESTLOCK)
+      assert lock.unlock("masui@pitecan.com", "xxxx")
+      assert lock.unlock("dummy","dummy")
+      assert lock.lock("masui@pitecan.com", "secret")
+      assert lock.locked?
+      assert lock.unlock("masui@pitecan.com", "secret")
+      assert ! lock.locked?
+      assert lock.lock("masui@pitecan.com", "secret")
+      assert ! lock.unlock("masui@acm.org", "secret")
+      assert lock.locked?
+      assert ! lock.unlock("masui@pitecan.com", "xxxx")
+      assert lock.unlock("masui@pitecan.com", "secret")
+      assert ! lock.locked?
     end
 
     def teardown
-      File.unlink("/tmp/locktest")
+      File.unlink(TESTLOCK) if File.exists?(TESTLOCK)
     end
   end
 end
-

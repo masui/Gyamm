@@ -3,14 +3,14 @@
 #  qwikのmail-*.rbがワケがわからなくなってきたので、メールの
 #  解析とMIMEデコードを自力でやってみることにする
 #
-#  デコード部分を少しqwikiソースから流用している
+#  デコード部分を少しqwikソースから流用している
 #
 #  2011/5/2 masui
 #
 require 'nkf'
 require 'base64'
 
-class Mail
+class Mime
   def initialize
     @header = []     # @header = [['Date', 'Mon, 02 May 2011 07:44:13 +0900'], ...]
     @cid2file = {}
@@ -235,7 +235,7 @@ class Mail
     if mail.multipart? then
       parts = mail.split
       mail.data = parts.collect { |text|
-        child = Mail.new
+        child = Mime.new
         child.read(text)
         make_tree(child)
       }
@@ -347,7 +347,7 @@ if defined?($test) && $test
   class TestMime < Test::Unit::TestCase
     def test_bare
       TESTFILES.each { |testfile|
-        mail = Mail.new
+        mail = Mime.new
         text = File.read(testfile)
         mail.read(text)
         assert mail.bare.size > 0
@@ -358,7 +358,7 @@ if defined?($test) && $test
 
     def test_body
       TESTFILES.each { |testfile|
-        mail = Mail.new
+        mail = Mime.new
         text = File.read(testfile)
         mail.read(text)
         assert mail.body.size > 0
@@ -368,7 +368,7 @@ if defined?($test) && $test
 
     def test_header
       TESTFILES.each { |testfile|
-        mail = Mail.new
+        mail = Mime.new
         text = File.read(testfile)
         mail.read(text)
         assert mail.header != nil
@@ -385,7 +385,7 @@ if defined?($test) && $test
 
     def test_hash
       TESTFILES.each { |testfile|
-        mail = Mail.new
+        mail = Mime.new
         text = File.read(testfile)
         mail.read(text)
         assert mail['Date'] != nil
@@ -399,7 +399,7 @@ if defined?($test) && $test
 
     def test_boundary
       TESTFILES.each { |testfile|
-        mail = Mail.new
+        mail = Mime.new
         text = File.read(testfile)
         mail.read(text)
         assert mail.boundary != nil
@@ -410,7 +410,7 @@ if defined?($test) && $test
 
     def test_multipart
       TESTFILES.each { |testfile|
-        mail = Mail.new
+        mail = Mime.new
         text = File.read(testfile)
         mail.read(text)
         assert mail.multipart?
@@ -419,7 +419,7 @@ if defined?($test) && $test
 
     def test_split
       TESTFILES.each { |testfile|
-        mail = Mail.new
+        mail = Mime.new
         text = File.read(testfile)
         mail.read(text)
         parts = mail.split
@@ -431,7 +431,7 @@ if defined?($test) && $test
 
     def test_tree
       TESTFILES.each { |testfile|
-        mail = Mail.new
+        mail = Mime.new
         text = File.read(testfile)
         mail.read(text)
         _test_tree(mail)
@@ -466,7 +466,7 @@ if defined?($test) && $test
 
     def test_filename
       TESTFILES.each { |testfile|
-        mail = Mail.new
+        mail = Mime.new
         text = File.read(testfile)
         mail.read(text)
         _test_filename(mail)
@@ -490,7 +490,7 @@ if defined?($test) && $test
     def test_aux_files
       tmpdir = "/tmp/mime#{$$}"
       Dir.mkdir(tmpdir)
-      mail = Mail.new
+      mail = Mime.new
       text = File.read(TESTFILE1)
       mail.read(text)
       mail.prepare_aux_files(tmpdir)

@@ -18,6 +18,8 @@ require 'lib/util-pathname'
 require 'lib/mailaddress'
 require 'time'
 
+require 'gyamm/lock'
+
 class Processor
 
   def initialize (config, mail)
@@ -47,6 +49,13 @@ class Processor
     Pathname.new(path).chmod(0777) # Web‚©‚ç‘‚«‚İ‚Å‚«‚é‚æ‚¤‚É
 
     datapath = path + "/" + Time.parse(@mail['Date']).strftime('%Y%m%d%H%M%S')
+
+    # Lockˆ—
+    if @mail['Subject'] =~ /lock:\s*(\w+)/i then
+      password = $1
+      lock = Lock.new(MailAddress.name(recipient))
+      lock.lock(@mail.mail_from, password)
+    end
 
     File.open(datapath,"w"){ |f|
       f.print @mail.to_s

@@ -22,7 +22,7 @@ def disp_list(name)
     @date = {}
     @ids.each { |id|
       text = File.read("#{path}/#{id}")
-      @mail = Mail.new
+      @mail = Mime.new
       @mail.read(text)
       @from[id] = @mail['From'].to_s.toutf8
       @to[id] = @mail['To'].to_s.toutf8
@@ -43,7 +43,7 @@ end
 def disp_message(name,id)
   file = "#{ROOTDIR}/data/#{name}/#{id}"
   @text = (File.exists?(file) ? File.read(file) : '')
-  @mail = Mail.new
+  @mail = Mime.new
   @mail.read(@text)
   @mail.prepare_aux_files("#{ROOTDIR}/public/tmp")
   @from = @mail['From'].to_s.toutf8
