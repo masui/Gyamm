@@ -3,10 +3,26 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="stylesheet" href="/stylesheets/list.css" type="text/css">
     <script language="JavaScript" src="/javascripts/jquery.js"></script>
+    <script language="JavaScript" src="/javascripts/jquery.bt.js"></script>
     <script type="text/javascript">
 $(function(){
-    $("tr:nth-child(odd)").addClass("odd");
-    $("tr:nth-child(even)").addClass("even");
+  $("tr:nth-child(odd)").addClass("odd");
+  $("tr:nth-child(even)").addClass("even");
+  $('#help').text('ヘルプ').
+    attr('href','/').
+    addClass('target').
+    attr('title','Gyammの使い方説明。').
+    bt({fill: 'rgba(240, 240, 240, 1.0)'});
+  $('#sort').text('新しい順に並べる').
+    attr('href','/<%= @name %>/sort').
+    addClass('target').
+    attr('title','メッセージを新しい順にソートします。それまでの並び順は忘れます。').
+    bt({fill: 'rgba(240, 240, 240, 1.0)'});
+  $('#recover').text('消したメッセージを回復').
+    attr('href','/<%= @name %>/recover').
+    addClass('target').
+    attr('title','前回消去されたメッセージが再び表示されるようにします。').
+    bt({fill: 'rgba(240, 240, 240, 1.0)'});
 });
     </script>
     <title><%= @name %></title>
@@ -16,7 +32,11 @@ $(function(){
     <div class="title">
       <div class="title2">
         <span class="title"><%= @name %></span>
-        <div class="menu"><a href="/<%= @name %>/recover">削除したメッセージを回復</a></div>
+        <div class="menu">
+          <a id="help"></a>&nbsp;
+          <a id="sort"></a>&nbsp;
+          <a id="recover"></a>
+        </div>
       </div>
     </div>
     <div class="list">

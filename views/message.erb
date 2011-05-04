@@ -2,19 +2,36 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="stylesheet" href="/stylesheets/message.css" type="text/css">
+    <link rel="stylesheet" href="/stylesheets/jquery.bt.css" type="text/css">
     <script language="JavaScript" src="/javascripts/jquery.js"></script>
+    <script language="JavaScript" src="/javascripts/jquery.bt.js"></script>
     <script type="text/javascript">
 $(function(){
+  $('#list').text('リスト').
+    attr('href','/<%= @name %>').
+    addClass('target').
+    attr('title','メッセージのリストを表示します').
+    bt({fill: 'rgba(240, 240, 240, 1.0)'});
+  $('#movetop').text('先頭へ').
+    attr('href','/<%= @name %>/<%= @id %>/top').
+    addClass('target').
+    attr('title','このメッセージがリスト画面で一番上に表示されるようにします。').
+    bt({fill: 'rgba(240, 240, 240, 1.0)'});
+  $('#disptext').text('テキスト').
+    attr('href','/<%= @name %>/<%= @id %>/text').
+    addClass('target').
+    attr('title','メールの生データを表示します。').
+    bt({fill: 'rgba(240, 240, 240, 1.0)'});
+  $('#delete').text('消去').
+    attr('href','/<%= @name %>/<%= @id %>/delete').
+    addClass('target').
+    attr('title','メールがリストに表示されないようにします。リスト画面で復活させることができます').
+    bt({fill: 'rgba(240, 240, 240, 1.0)'});
 });
     </script>
     <title><%= @subject %></title>
   </head>
   <body>
-<!--
-    <div class='top'>
-    </div>
-    <br clear="all">
--->
     <div class='header'>
       <div class="headers">
         <b>To: </b><%= @to %><br>
@@ -22,10 +39,10 @@ $(function(){
         <b>Subject: </b><%= @subject %><br>
       </div>
       <div class="menu">
-        <a href="/<%= @name %>">TOP</a>&nbsp;
-        <a href="/<%= @name %>/<%= @id %>/top">リスト先頭に移動</a>&nbsp;
-        <a href="/<%= @name %>/<%= @id %>/text">メールテキスト表示</a>&nbsp;
-        <a href="/<%= @name %>/<%= @id %>/delete">このメッセージを削除</a>
+        <a id="list"></a>&nbsp;
+        <a id="movetop"></a>&nbsp;
+        <a id="disptext"></a>&nbsp;
+        <a id="delete"></a>&nbsp;
       </div>
       <br clear="all">
     </div>

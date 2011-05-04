@@ -17,7 +17,11 @@ def disp_list(name)
     @ids = Dir.open(path).find_all { |id|
       id =~ /^\d{14}$/ && ! d.deleted?(id)
     }.sort { |a,b|
-      File.mtime("#{path}/#{b}") <=> File.mtime("#{path}/#{a}")
+      #
+      # ownerが異なるファイルに対してFile.touchはできるのにFile.utimeができないので、
+      # ファイルの更新時刻とファイルIDを連結したものを比較することによりファイルを新しい順に並べることにする。
+      #
+      File.mtime("#{path}/#{b}").strftime('%Y%m%d%H%M%S')+b <=> File.mtime("#{path}/#{a}").strftime('%Y%m%d%H%M%S')+a
     }
     @from = {}
     @to = {}
@@ -68,3 +72,30 @@ def disp_message(name,id)
   erb :message
 end
 
+def set_file_time(name)
+  @name = name
+  path = "#{ROOTDIR}/data/#{@name}"
+  if File.exists?(path) && File.directory?(path) then
+    @ids = Dir.open(path).each { |id|
+      if id =~ /^\d{14}$/ then
+        file = "#{path}/#{id}"
+        FileUtils.touch(file)
+      end
+    }
+
+    # ファイルのDate:をmodtimeにしようとしたのだが、ownerが異なるファイルに
+    # 対してFile.utimeができないらしいため失敗。
+    if false then
+      @ids = Dir.open(path).find_all { |id|
+        if id =~ /^\d{14}$/ then
+          filename = "#{path}/#{id}"
+          text = File.read(filename)
+          mail = Mime.new
+          mail.read(text)
+          time = Time.parse(mail['Date'])
+          File.utime(time,time,filename)
+        end
+      }
+    end
+  end
+end

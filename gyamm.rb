@@ -50,6 +50,12 @@ get '/:name/recover' do |name|
   redirect "/#{name}"
 end
 
+get '/:name/sort' do |name|
+  protected!(name)
+  set_file_time(name)
+  redirect "/#{name}"
+end
+
 get %r{/(\S+)/([0-9]{14})$} do |name,id|
   protected!(name)
   disp_message(name,id)

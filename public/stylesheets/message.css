@@ -1,0 +1,32 @@
+body {
+  background-color: #fff;
+  /*
+  background-image: url("http://subtlepatterns.com/patterns/paper_2.gif")
+  */
+}
+
+a {
+  text-decoration: none;
+}
+
+div.header {
+  background-color: #eee;
+  padding:4pt;
+}
+
+div.headers {
+  float:left;
+}
+
+.top {
+  background-color: #fff;
+  padding:2pt;
+}
+
+div.menu {
+  float:right;
+}
+
+div.menu a {
+  color: #777;
+}
