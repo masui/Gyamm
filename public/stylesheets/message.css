@@ -5,6 +5,15 @@ body {
   */
 }
 
+div {
+  font-family: sans-serif
+}
+span {
+  font-family: sans-serif
+}
+li {
+  font-family: sans-serif
+}
 a {
   text-decoration: none;
 }

@@ -9,6 +9,16 @@ body {
   background-image: url("/images/exclusive_paper.gif")
 }
 
+div {
+  font-family: sans-serif
+}
+span {
+  font-family: sans-serif
+}
+li {
+  font-family: sans-serif
+}
+
 a:link { color: #0000ff ; }
 a:visited { color: #0000ff ; }
 a {

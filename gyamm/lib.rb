@@ -61,11 +61,18 @@ def disp_message(name,id)
   @text = (File.exists?(file) ? File.read(file) : '')
   @mail = Mime.new
   @mail.read(@text)
-  @mail.prepare_aux_files("#{ROOTDIR}/public/tmp")
+
+  id =~ /^(........)/
+  cachedir = $1
+  tmpdir = "#{ROOTDIR}/public/tmp/#{cachedir}"
+  unless File.exists?(tmpdir) then
+    Dir.mkdir(tmpdir)
+  end
+  @mail.prepare_aux_files(tmpdir)
   @from = @mail['From'].to_s.toutf8
   @to = @mail['To'].to_s.toutf8
   @subject = @mail['Subject'].to_s.toutf8
-  @html = @mail.dump
+  @html = @mail.dump(cachedir)
   @body = @mail.body.toutf8
   @id = id
   @name = name
