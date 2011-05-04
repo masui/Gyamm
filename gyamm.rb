@@ -50,17 +50,18 @@ get '/:name/recover' do |name|
   redirect "/#{name}"
 end
 
-get '/:name/:id' do |name,id|
+get %r{/(\S+)/([0-9]{14})$} do |name,id|
   protected!(name)
   disp_message(name,id)
 end
 
-get '/:name/:id/' do |name,id|
+get %r{/(\S+)/([0-9]{14})/$} do |name,id|
   protected!(name)
   disp_message(name,id)
 end
 
-get '/:name/:id/delete' do |name,id|
+# get '/:name/:id/delete' do |name,id|
+get %r{/(\S+)/([0-9]{14})/delete$} do |name,id|
   protected!(name)
   listfile = "#{ROOTDIR}/data/#{name}/deletefiles"
   d = DeleteFiles.new(listfile)
@@ -68,7 +69,8 @@ get '/:name/:id/delete' do |name,id|
   redirect "/#{name}"
 end
 
-get '/:name/:id/text' do |name,id|
+# get '/:name/:id/text' do |name,id|
+get %r{/(\S+)/([0-9]{14})/text$} do |name,id|
   protected!(name)
   file = "#{ROOTDIR}/data/#{name}/#{id}"
   @name = name
@@ -78,7 +80,8 @@ get '/:name/:id/text' do |name,id|
   erb :text
 end
 
-get '/:name/:id/top' do |name,id|
+# get '/:name/:id/top' do |name,id|
+get %r{/(\S+)/([0-9]{14})/top$} do |name,id|
   protected!(name)
   file = "#{ROOTDIR}/data/#{name}/#{id}"
   FileUtils.touch(file)

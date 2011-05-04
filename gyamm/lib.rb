@@ -28,11 +28,13 @@ def disp_list(name)
       @from[id] = @mail['From'].to_s.toutf8
       @to[id] = @mail['To'].to_s.toutf8
       @subject[id] = @mail['Subject'].to_s.toutf8
-      id =~ /^(....)(..)(..)/
+      id =~ /^(....)(..)(..)(..)(..)/
       y = $1
       m = $2
       d = $3
-      @date[id] = "#{y}/#{m.sub(/^0+/,'')}/#{d.sub(/^0+/,'')}"
+      h = $4
+      min = $5
+      @date[id] = "#{y}/#{m.sub(/^0+/,'')}/#{d.sub(/^0+/,'')} #{h.sub(/^0+/,'')}:#{min}"
 #      time = Time.parse(@mail['Date'])
 #      @date[id] = "#{time.year}/#{time.mon}/#{time.day}"
     }
