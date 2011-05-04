@@ -12,10 +12,11 @@ $(function(){
     <title><%= @name %></title>
   </head>
   <body>
+    <%= @lock %>
     <div class="title">
       <div class="title2">
         <span class="title"><%= @name %></span>
-        <div class="delete"><a href="/<%= @name %>/recover">削除したメッセージを回復</a></div>
+        <div class="menu"><a href="/<%= @name %>/recover">削除したメッセージを回復</a></div>
       </div>
     </div>
     <div class="list">

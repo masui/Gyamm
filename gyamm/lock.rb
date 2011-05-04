@@ -57,6 +57,12 @@ class Lock
     end
     return false
   end
+
+  def locked_by
+    return nil if !locked?
+    getinfo
+    return @addr
+  end
 end
 
 if $0 == __FILE__
@@ -98,6 +104,14 @@ if defined?($test) && $test
       assert lock.locked?
       assert lock.unlock("masui@pitecan.com")
       assert ! lock.locked?
+    end
+
+    def test_lockedby
+      lock = Lock.new('masui_test', TESTLOCK)
+      assert ! lock.locked_by
+      assert lock.lock("masui@pitecan.com", "secret")
+      assert_equal lock.locked_by, "masui@pitecan.com"
+      assert lock.locked_by == "masui@pitecan.com"
     end
 
     def teardown

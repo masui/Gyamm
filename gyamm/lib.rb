@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 $LOAD_PATH << '..' unless $LOAD_PATH.include? '..'
 
 require 'gyamm/config'
+require 'gyamm/lock'
 require 'time'
 
 def disp_list(name)
@@ -39,9 +41,14 @@ def disp_list(name)
 #      @date[id] = "#{time.year}/#{time.mon}/#{time.day}"
     }
     @id = id
+    @lock = ''
+    lock = Lock.new(name)
+    if @locker = lock.locked_by then
+      @lock = "このアーカイブは <b>#{@locker}</b> によりロックされています"
+    end
     erb :list
   else
-    ''
+    'このURLは利用されていません'
   end
 end
 
@@ -58,6 +65,6 @@ def disp_message(name,id)
   @body = @mail.body.toutf8
   @id = id
   @name = name
-  erb :plain
+  erb :message
 end
 

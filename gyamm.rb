@@ -34,7 +34,7 @@ end
 
 get '/:name' do |name|
   protected!(name)
-  disp_list(name)
+  disp_list(name) # in gyamm/lib.rb
 end
 
 get '/:name/' do |name|

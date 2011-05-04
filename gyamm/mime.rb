@@ -299,8 +299,8 @@ class Mime
             mail.html += ("<pre>" + NKF.nkf("-w",child.decode_body) + "</pre>\n")
           elsif child['Content-Type'] =~ /text\/html/ then
             mail.html += child.decode_body
-          else
-            mail.html += "<a href='/tmp/#{child.filename}'>#{child.filename}</a><br>"
+          else # たぶん添付ファイル
+            mail.html += "▶ <a href='/tmp/#{child.filename}'>#{child.filename}</a><br>"
           end
         }
       elsif mail['Content-Type'] =~ /multipart\/related/ then

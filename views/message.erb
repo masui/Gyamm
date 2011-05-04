@@ -2,22 +2,32 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="stylesheet" href="/stylesheets/message.css" type="text/css">
-    <title></title>
+    <script language="JavaScript" src="/javascripts/jquery.js"></script>
+    <script type="text/javascript">
+$(function(){
+});
+    </script>
+    <title><%= @subject %></title>
   </head>
   <body>
+<!--
     <div class='top'>
-      <div class="delete">
+    </div>
+    <br clear="all">
+-->
+    <div class='header'>
+      <div class="headers">
+        <b>To: </b><%= @to %><br>
+        <b>From: </b><%= @from %><br>
+        <b>Subject: </b><%= @subject %><br>
+      </div>
+      <div class="menu">
         <a href="/<%= @name %>">TOP</a>&nbsp;
         <a href="/<%= @name %>/<%= @id %>/top">リスト先頭に移動</a>&nbsp;
         <a href="/<%= @name %>/<%= @id %>/text">メールテキスト表示</a>&nbsp;
         <a href="/<%= @name %>/<%= @id %>/delete">このメッセージを削除</a>
       </div>
-    </div>
-    <br clear="all">
-    <div class='header'>
-      <b>To: </b><%= @to %><br>
-      <b>From: </b><%= @from %><br>
-      <b>Subject: </b><%= @subject %><br>
+      <br clear="all">
     </div>
 <%= @html %>
   </body>
