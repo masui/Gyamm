@@ -319,7 +319,7 @@ class Mime
         }
       end
     else
-      if mail['Content-Type'] =~ /text\/plain/ then
+      if mail['Content-Type'] =~ /text\/plain/ || mail['Content-Type'].nil? then
         mail.html += "<pre>" + NKF.nkf('-w',mail.decode_body) + "</pre>\n"
       else
         mail.html += NKF.nkf('-w',mail.decode_body)
