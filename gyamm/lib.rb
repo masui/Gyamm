@@ -34,6 +34,7 @@ def disp_list(name)
       @from[id] = @mail['From'].to_s.toutf8
       @to[id] = @mail['To'].to_s.toutf8
       @subject[id] = @mail['Subject'].to_s.toutf8
+      @subject[id] = "(タイトルなし)" if @subject[id] == ""
       id =~ /^(....)(..)(..)(..)(..)/
       y = $1
       m = $2

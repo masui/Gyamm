@@ -53,7 +53,7 @@ class Processor
     # Lock/Unlockˆ—
     # Subject: lock password  ==> Basic”FØİ’è
     # Subject: unlock         ==> ”FØ‰ğœ
-    if @mail['Subject'] =~ /^unlock/i then
+    if @mail['Subject'] =~ /^(un)?lock(:)?\s*$/i then
       lock = Lock.new(MailAddress.name(recipient))
       lock.unlock(@mail.mail_from)
       return

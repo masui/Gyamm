@@ -16,7 +16,7 @@ $(function(){
   $('#sort').text('新しい順に並べる').
     attr('href','/<%= @name %>/sort').
     addClass('target').
-    attr('title','メッセージを新しい順にソートします。それまでの並び順は忘れます。').
+    attr('title','メッセージを新しい順にソートします。それまでの並び順は忘れます。<br>メッセージはメッセージ画面で並びかえることができます。').
     bt({fill: 'rgba(240, 240, 240, 1.0)'});
   $('#recover').text('消したメッセージを回復').
     attr('href','/<%= @name %>/recover').
@@ -31,7 +31,7 @@ $(function(){
     <%= @lock %>
     <div class="title">
       <div class="title2">
-        <span class="title"><%= @name %></span>
+        <span class="title"><a href="mailto:<%= @name %>@gyamm.com"><%= @name %></a></span>
         <div class="menu">
           <a id="help"></a>&nbsp;
           <a id="sort"></a>&nbsp;
