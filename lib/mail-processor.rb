@@ -61,6 +61,7 @@ class Processor
       return
     elsif @mail['Subject'] =~ /^lock:?\s*(\w+)/i then
       gyamm = Gyamm.new(name)
+      # 最初にメールを送った人だけロックをかけられる
       if gyamm.from(gyamm.ids[0]) == @mail.mail_from then
         password = $1
         lock = Lock.new(name)

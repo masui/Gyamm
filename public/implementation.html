@@ -2,12 +2,27 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="stylesheet" href="/stylesheets/list.css" type="text/css">
+    <link rel="stylesheet" href="/stylesheets/jquery.bt.css" type="text/css">
+    <script language="JavaScript" src="/javascripts/jquery.js"></script>
+    <script language="JavaScript" src="/javascripts/jquery.bt.js"></script>
+    <script type="text/javascript">
+$(function(){
+  $('#top').text('トップ').
+    attr('href','/').
+    addClass('target').
+    attr('title','Gyamm.comトップページ').
+    bt({fill: 'rgba(240, 240, 240, 1.0)'});
+});
+    </script>
     <title>Gyammの実装</title>
   </head>
   <body>
     <div class="title">
       <div class="title2">
         <span class="title">Gyammの実装</span>
+        <div class="menu">
+          <a id="top"></a>&nbsp;
+        </div>
       </div>
     </div>
 
@@ -15,6 +30,7 @@
     <li>Gyammにメールを送ると、SMTPサーバと同じように動くGyammサーバがアドレスとデータを解釈してデータを保存します。
     <li>改造メールサーバを利用する方法は<a href="http://QuickML">QuickML</a>で採用したものですが、
         Gyammは<a href="http://qwik.jp/">Qwik</a>のソースを改造して作ってあります。
+    <li>HTMLメール内の画像などはキャッシュとして扱われるので直リンクしないのが無難です。
     </ul>
   </body>
 </html>
