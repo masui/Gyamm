@@ -58,12 +58,13 @@ end
 
 get %r{/(\S+)/([0-9]{14})$} do |name,id|
   protected!(name)
-  disp_message(name,id)
+  message_html(name,id)
+#  disp_message(name,id)
 end
 
 get %r{/(\S+)/([0-9]{14})/$} do |name,id|
   protected!(name)
-  disp_message(name,id)
+  message_html(name,id)
 end
 
 # get '/:name/:id/delete' do |name,id|

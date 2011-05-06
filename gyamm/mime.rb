@@ -275,11 +275,11 @@ class Mime
   #
   # HTMLを吐く
   #
-  def dump(cachedir)
-    _dump(self,cachedir)
+  def dump(cacheurl)
+    _dump(self,cacheurl)
   end
 
-  def _dump(mail,cachedir)
+  def _dump(mail,cacheurl)
     return if mail.body.size == 0
     if mail.data.class == Array then
       if mail['Content-Type'] =~ /multipart\/alternative/ then  # プレーンテキストとHTML混在の場合など
@@ -290,17 +290,17 @@ class Mime
             rep = i
           end
         }
-        mail.html += _dump(mail.data[rep],cachedir)
+        mail.html += _dump(mail.data[rep],cacheurl)
       elsif mail['Content-Type'] =~ /multipart\/mixed/ then # 添付ファイルなど
         mail.data.each { |child|
           if child['Content-Type'] =~ /multipart/ then
-            mail.html += _dump(child,cachedir)
+            mail.html += _dump(child,cacheurl)
           elsif child['Content-Type'] =~ /text\/plain/ then
             mail.html += ("<pre>" + NKF.nkf("-w",child.decode_body) + "</pre>\n")
           elsif child['Content-Type'] =~ /text\/html/ then
             mail.html += child.decode_body
           else # たぶん添付ファイル
-            mail.html += "<span style='color:green'>▶</span> <a href='/tmp/#{cachedir}/#{child.filename}'>#{child.filename}</a><br>"
+            mail.html += "<span style='color:green'>▶</span> <a href='#{cacheurl}/#{child.filename}'>#{child.filename}</a><br>"
           end
         }
       elsif mail['Content-Type'] =~ /multipart\/related/ then
@@ -310,7 +310,7 @@ class Mime
           else
             html = child.decode_body
             while html =~ /"(cid:([^"]+))"/ do
-              filename = "/tmp/#{cachedir}/#{@cid2file[$2]}"
+              filename = "#{cacheurl}/#{@cid2file[$2]}"
               cidstr = $1
               html.gsub!(/#{Regexp.escape(cidstr)}/,"#{filename}")
             end
