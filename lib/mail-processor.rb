@@ -19,6 +19,7 @@ require 'lib/mailaddress'
 require 'time'
 
 require 'gyamm/lock'
+require 'gyamm/lib'
 
 class Processor
 
@@ -53,14 +54,18 @@ class Processor
     # Lock/Unlockˆ—
     # Subject: lock password  ==> Basic”FØİ’è
     # Subject: unlock         ==> ”FØ‰ğœ
+    name = MailAddress.name(recipient)
     if @mail['Subject'] =~ /^(un)?lock(:)?\s*$/i then
-      lock = Lock.new(MailAddress.name(recipient))
+      lock = Lock.new(name)
       lock.unlock(@mail.mail_from)
       return
     elsif @mail['Subject'] =~ /^lock:?\s*(\w+)/i then
-      password = $1
-      lock = Lock.new(MailAddress.name(recipient))
-      lock.lock(@mail.mail_from, password)
+      gyamm = Gyamm.new(name)
+      if gyamm.from(gyamm.ids[0]) == @mail.mail_from then
+        password = $1
+        lock = Lock.new(name)
+        lock.lock(@mail.mail_from, password)
+      end
       return
     end
 
