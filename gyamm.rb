@@ -20,7 +20,7 @@ helpers do
   def protected!(name)
     unless authorized?(name)
       response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
-      throw(:halt, [401, "Not authorized\n"])
+      throw(:halt, [401, "Not authorized.\n"])
     end
   end
 

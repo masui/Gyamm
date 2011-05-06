@@ -80,6 +80,10 @@ def disp_message(name,id)
   erb :message
 end
 
+# ファイルのDate:をmodtimeにしようとしたのだが、ownerが異なるファイルに
+# 対してFile.utimeができないらしいため失敗。
+# touchで我慢することにする。
+
 def set_file_time(name)
   @name = name
   path = "#{ROOTDIR}/data/#{@name}"
@@ -90,20 +94,5 @@ def set_file_time(name)
         FileUtils.touch(file)
       end
     }
-
-    # ファイルのDate:をmodtimeにしようとしたのだが、ownerが異なるファイルに
-    # 対してFile.utimeができないらしいため失敗。
-    if false then
-      @ids = Dir.open(path).find_all { |id|
-        if id =~ /^\d{14}$/ then
-          filename = "#{path}/#{id}"
-          text = File.read(filename)
-          mail = Mime.new
-          mail.read(text)
-          time = Time.parse(mail['Date'])
-          File.utime(time,time,filename)
-        end
-      }
-    end
   end
 end
