@@ -4,12 +4,17 @@ $LOAD_PATH << '..' unless $LOAD_PATH.include? '..'
 require 'gyamm/config'
 require 'gyamm/lock'
 require 'gyamm/mime'
+require 'gyamm/delete'
 require 'time'
 
 class Gyamm
   def initialize(name)
     @name = name
     @path = "#{ROOTDIR}/data/#{@name}"
+  end
+
+  def valid?
+    File.exists?(@path) && File.directory?(@path)
   end
 
   def path(id)
@@ -38,6 +43,14 @@ class Gyamm
         id =~ /^\d{14}$/
       }.sort
     end
+    return list
+  end
+
+  def valid_ids
+    d = DeleteFiles.new("#{ROOTDIR}/data/#{@name}/deletefiles")
+    list = ids.find_all { |id|
+      ! d.deleted?(id)
+    }
     return list
   end
 
@@ -82,49 +95,37 @@ def message_html(name,id)
   @html = mime.dump(cacheurl)
   @body = mime.body.toutf8
   @id = id
+  @name = name
   erb :message
 end
 
-def disp_list(name)
+def list_html(name)
   @name = name
-
-  listfile = "#{ROOTDIR}/data/#{name}/deletefiles"
-  d = DeleteFiles.new(listfile)
-
-  path = "#{ROOTDIR}/data/#{@name}"
-  if File.exists?(path) && File.directory?(path) then
-    @ids = Dir.open(path).find_all { |id|
-      id =~ /^\d{14}$/ && ! d.deleted?(id)
-    }.sort { |a,b|
+  gyamm = Gyamm.new(name)
+  if gyamm.valid? then
+    @ids = gyamm.valid_ids.sort { |a,b|
       #
       # ownerが異なるファイルに対してFile.touchはできるのにFile.utimeができないので、
       # ファイルの更新時刻とファイルIDを連結したものを比較することによりファイルを新しい順に並べることにする。
       #
-      File.mtime("#{path}/#{b}").strftime('%Y%m%d%H%M%S')+b <=> File.mtime("#{path}/#{a}").strftime('%Y%m%d%H%M%S')+a
+      File.mtime(gyamm.path(b)).strftime('%Y%m%d%H%M%S')+b <=>
+      File.mtime(gyamm.path(a)).strftime('%Y%m%d%H%M%S')+a
     }
-    @from = {}
-    @to = {}
+    # @from = {}
+    # @to = {}
     @subject = {}
     @date = {}
     @ids.each { |id|
-      text = File.read("#{path}/#{id}")
+      text = File.read(gyamm.path(id))
       @mail = Mime.new
       @mail.read(text)
-      @from[id] = @mail['From'].to_s.toutf8
-      @to[id] = @mail['To'].to_s.toutf8
+      # @from[id] = @mail['From'].to_s.toutf8
+      # @to[id] = @mail['To'].to_s.toutf8
       @subject[id] = @mail['Subject'].to_s.toutf8
       @subject[id] = "(タイトルなし)" if @subject[id] == ""
-      id =~ /^(....)(..)(..)(..)(..)/
-      y = $1
-      m = $2
-      d = $3
-      h = $4
-      min = $5
-      @date[id] = "#{y}/#{m.sub(/^0+/,'')}/#{d.sub(/^0+/,'')} #{h.sub(/^0+/,'')}:#{min}"
-#      time = Time.parse(@mail['Date'])
-#      @date[id] = "#{time.year}/#{time.mon}/#{time.day}"
+      (dummy, y, m, d, h, min) = id.match(/^(....)(..)(..)(..)(..)/).to_a
+      @date[id] = "#{y}/#{m.to_i}/#{d.to_i} #{h.to_i}:#{min}"
     }
-    @id = id
     @lock = ''
     lock = Lock.new(name)
     if @locker = lock.locked_by then
@@ -136,45 +137,75 @@ def disp_list(name)
   end
 end
 
-def disp_message(name,id)
-  file = "#{ROOTDIR}/data/#{name}/#{id}"
-  @text = (File.exists?(file) ? File.read(file) : '')
-  @mail = Mime.new
-  @mail.read(@text)
-
-  id =~ /^(........)/
-  cachedir = $1
-  tmpdir = "#{ROOTDIR}/public/tmp/#{cachedir}"
-  unless File.exists?(tmpdir) then
-    Dir.mkdir(tmpdir)
-  end
-  @mail.prepare_aux_files(tmpdir)
-  @from = @mail['From'].to_s.toutf8
-  @to = @mail['To'].to_s.toutf8
-  @subject = @mail['Subject'].to_s.toutf8
-  @html = @mail.dump(cachedir)
-  @body = @mail.body.toutf8
-  @id = id
-  @name = name
-  erb :message
-end
+# def disp_list(name)
+#   @name = name
+# 
+#   listfile = "#{ROOTDIR}/data/#{name}/deletefiles"
+#   d = DeleteFiles.new(listfile)
+# 
+#   path = "#{ROOTDIR}/data/#{@name}"
+#   if File.exists?(path) && File.directory?(path) then
+#     @ids = Dir.open(path).find_all { |id|
+#       id =~ /^\d{14}$/ && ! d.deleted?(id)
+#     }.sort { |a,b|
+#       #
+#       # ownerが異なるファイルに対してFile.touchはできるのにFile.utimeができないので、
+#       # ファイルの更新時刻とファイルIDを連結したものを比較することによりファイルを新しい順に並べることにする。
+#       #
+#       File.mtime("#{path}/#{b}").strftime('%Y%m%d%H%M%S')+b <=> File.mtime("#{path}/#{a}").strftime('%Y%m%d%H%M%S')+a
+#     }
+#     @from = {}
+#     @to = {}
+#     @subject = {}
+#     @date = {}
+#     @ids.each { |id|
+#       text = File.read("#{path}/#{id}")
+#       @mail = Mime.new
+#       @mail.read(text)
+# #      @from[id] = @mail['From'].to_s.toutf8
+# #      @to[id] = @mail['To'].to_s.toutf8
+#       @subject[id] = @mail['Subject'].to_s.toutf8
+#       @subject[id] = "(タイトルなし)" if @subject[id] == ""
+#       (dummy, y, m, d, h, min) = id.match(/^(....)(..)(..)(..)(..)/).to_a
+#       @date[id] = "#{y}/#{m.sub(/^0+/,'')}/#{d.sub(/^0+/,'')} #{h.sub(/^0+/,'')}:#{min}"
+# #      time = Time.parse(@mail['Date'])
+# #      @date[id] = "#{time.year}/#{time.mon}/#{time.day}"
+#     }
+#     @id = id
+#     @lock = ''
+#     lock = Lock.new(name)
+#     if @locker = lock.locked_by then
+#       @lock = "このアーカイブは <b>#{@locker}</b> によりロックされています"
+#     end
+#     erb :list
+#   else
+#     'このURLは利用されていません'
+#   end
+# end
 
 # ファイルのDate:をmodtimeにしようとしたのだが、ownerが異なるファイルに
 # 対してFile.utimeができないらしいため失敗。
 # touchで我慢することにする。
 
-def set_file_time(name)
-  @name = name
-  path = "#{ROOTDIR}/data/#{@name}"
-  if File.exists?(path) && File.directory?(path) then
-    @ids = Dir.open(path).each { |id|
-      if id =~ /^\d{14}$/ then
-        file = "#{path}/#{id}"
-        FileUtils.touch(file)
-      end
-    }
-  end
+def touch_all(name)
+  gyamm = Gyamm.new(name)
+  gyamm.each { |id|
+    FileUtils.touch(gyamm.path(id))
+  }
 end
+
+#def set_file_time(name)
+#  @name = name
+#  path = "#{ROOTDIR}/data/#{@name}"
+#  if File.exists?(path) && File.directory?(path) then
+#    @ids = Dir.open(path).each { |id|
+#      if id =~ /^\d{14}$/ then
+#        file = "#{path}/#{id}"
+#        FileUtils.touch(file)
+#      end
+#    }
+#  end
+#end
 
 if $0 == __FILE__
   require 'test/unit'

@@ -7,6 +7,11 @@
     <script language="JavaScript" src="/javascripts/jquery.bt.js"></script>
     <script type="text/javascript">
 $(function(){
+  $('#help').text('ヘルプ').
+    attr('href','/').
+    addClass('target').
+    attr('title','Gyammの使い方説明。').
+    bt({fill: 'rgba(240, 240, 240, 1.0)'});
   $('#list').text('リスト').
     attr('href','/<%= @name %>').
     addClass('target').

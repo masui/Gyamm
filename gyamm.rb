@@ -34,12 +34,14 @@ end
 
 get '/:name' do |name|
   protected!(name)
-  disp_list(name) # in gyamm/lib.rb
+  list_html(name)
+#  disp_list(name) # in gyamm/lib.rb
 end
 
 get '/:name/' do |name|
   protected!(name)
-  disp_list(name)
+  list_html(name)
+#  disp_list(name)
 end
 
 get '/:name/recover' do |name|
@@ -52,14 +54,14 @@ end
 
 get '/:name/sort' do |name|
   protected!(name)
-  set_file_time(name)
+#  set_file_time(name)
+  touch_all(name)
   redirect "/#{name}"
 end
 
 get %r{/(\S+)/([0-9]{14})$} do |name,id|
   protected!(name)
   message_html(name,id)
-#  disp_message(name,id)
 end
 
 get %r{/(\S+)/([0-9]{14})/$} do |name,id|
