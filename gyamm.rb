@@ -32,6 +32,7 @@ helpers do
   end
 end
 
+# ロック適用外
 get %r{/([0-9a-f]{32})$} do |link| # e.g. http://gyamm.com/e2cf57e59b4aa5eebc9ecd21b92bd86e
   link_html(link)
 end
