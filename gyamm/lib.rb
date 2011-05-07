@@ -110,6 +110,13 @@ def message_html(name,id,link=false)
   @body = mime.body.toutf8
   @id = id
   @name = name
+  @lock = ''
+  if !link then
+    lock = Lock.new(name)
+    if @locker = lock.locked_by then
+      @lock = "このメッセージは <b>#{@locker}</b> によりロックされています"
+    end
+  end
   erb :message
 end
 
