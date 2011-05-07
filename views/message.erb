@@ -12,6 +12,7 @@ $(function(){
     addClass('target').
     attr('title','Gyammの使い方説明。').
     bt({fill: 'rgba(240, 240, 240, 1.0)'});
+<% if @link then %>
   $('#list').text('リスト').
     attr('href','/<%= @name %>').
     addClass('target').
@@ -37,6 +38,7 @@ $(function(){
     addClass('target').
     attr('title','メールがリストに表示されないようにします。リスト画面で復活させることができます').
     bt({fill: 'rgba(240, 240, 240, 1.0)'});
+<% end %>
 });
     </script>
     <title>><%= @subject %></title>
