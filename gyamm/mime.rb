@@ -331,18 +331,23 @@ end
 
 if $0 == __FILE__
   require 'test/unit'
+  require 'config'
   $test = true
 end
 
 if defined?($test) && $test
-  GYAMMDIR = "/Users/masui/Gyamm/data"
-  TESTFILE1 = GYAMMDIR + "/masui_test/20110501212905" # StumbleUpon
-  TESTFILE2 = GYAMMDIR + "/masui_test/20110502075633" # Amazon
-  TESTFILE3 = GYAMMDIR + "/masui_test/20110502074413" # 未踏
+#  GYAMMDIR = datadir
+#  TESTFILE1 = GYAMMDIR + "/masui_test/20110501212905" # StumbleUpon
+#  TESTFILE2 = GYAMMDIR + "/masui_test/20110502075633" # Amazon
+#  TESTFILE3 = GYAMMDIR + "/masui_test/20110502074413" # 未踏
+  TESTFILE4 = datafile('example','20110505155934') # TSUTAYA
+  TESTFILE5 = datafile('example','20110505153134') # 別荘
   TESTFILES = []
-  TESTFILES << TESTFILE1
-  TESTFILES << TESTFILE2
-  TESTFILES << TESTFILE3
+#  TESTFILES << TESTFILE1
+#  TESTFILES << TESTFILE2
+#  TESTFILES << TESTFILE3
+   TESTFILES << TESTFILE4
+   TESTFILES << TESTFILE5
 
   class TestMime < Test::Unit::TestCase
     def test_bare
@@ -487,7 +492,7 @@ if defined?($test) && $test
       end
     end
 
-    def test_aux_files
+    def _test_aux_files
       tmpdir = "/tmp/mime#{$$}"
       Dir.mkdir(tmpdir)
       mail = Mime.new

@@ -10,7 +10,7 @@ require 'time'
 class Gyamm
   def initialize(name)
     @name = name
-    @path = "#{ROOTDIR}/data/#{@name}"
+    @path = datadir(name)
   end
 
   def valid?
@@ -23,7 +23,7 @@ class Gyamm
 
   def cachedir(id)
     id =~ /^(........)/
-    dir = "#{ROOTDIR}/public/tmp/#{$1}"
+    dir = "#{tmpdir}/#{$1}"
     unless File.exists?(dir) then
       Dir.mkdir(dir)
     end
@@ -47,7 +47,7 @@ class Gyamm
   end
 
   def valid_ids
-    d = DeleteFiles.new("#{ROOTDIR}/data/#{@name}/deletefiles")
+    d = DeleteFiles.new("#{@path}/deletefiles")
     list = ids.find_all { |id|
       ! d.deleted?(id)
     }
@@ -80,23 +80,48 @@ class Gyamm
   end
 end
 
-def message_html(name,id)
+def message_html(name,id,link=false)
+  File.open("/tmp/name","w"){ |f|
+    f.puts name
+    f.puts id
+  }
   gyamm = Gyamm.new(name)
   file = gyamm.path(id)
   text = (File.exists?(file) ? File.read(file) : '')
+
+  if !link then
+    @link = linkname(text)
+    if !File.exists?(linkfile(@link)) then
+      File.symlink(file,linkfile(@link))
+    end
+  else
+    @link = nil
+  end
+
   mime = Mime.new
   cachedir = gyamm.cachedir(id)
   cacheurl = gyamm.cacheurl(id)
   mime.read(text)
   mime.prepare_aux_files(cachedir)
-  @from = mime['From'].to_s.toutf8
-  @to = mime['To'].to_s.toutf8
+  @from = mime['From'].to_s.sub(/</,'&lt;').toutf8
+  @to = mime['To'].to_s.sub(/</,'&lt;').toutf8
   @subject = mime['Subject'].to_s.toutf8
   @html = mime.dump(cacheurl)
   @body = mime.body.toutf8
   @id = id
   @name = name
   erb :message
+end
+
+#
+# 単体でメールを表示したいとき(リストを見せたくないとき)利用
+#
+def link_html(link)
+  file = File.readlink(linkfile(link))
+  file =~ %r{/([^/]+)/([^/]+)$}
+  name = $1
+  id = $2
+  message_html(name,id,link)
 end
 
 def list_html(name)
@@ -169,9 +194,20 @@ if defined?($test) && $test
 
     def test_ids
       gyamm = Gyamm.new("ubi-programming")
-      gyamm.each { |id|
+      gyamm.ids.each { |id|
         assert id =~ /^\d{14}$/
       }
+    end
+
+    def test_valid_ids
+      gyamm = Gyamm.new("ubi-programming")
+      valid_ids = gyamm.valid_ids
+      assert_equal valid_ids.class, Array
+      assert valid_ids.length > 0
+      valid_ids.each { |id|
+        assert id =~ /^\d{14}$/
+      }
+      assert gyamm.ids.length > valid_ids.length
     end
 
     def test_ids_sorted

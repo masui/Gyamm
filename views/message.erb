@@ -27,6 +27,11 @@ $(function(){
     addClass('target').
     attr('title','メールの生データを表示します。').
     bt({fill: 'rgba(240, 240, 240, 1.0)'});
+  $('#link').text('リンク').
+    attr('href','/<%= @link %>').
+    addClass('target').
+    attr('title','メールを単体で表示します。URLを公開したとき他のメールにアクセスされたくないとき利用できます。').
+    bt({fill: 'rgba(240, 240, 240, 1.0)'});
   $('#delete').text('消去').
     attr('href','/<%= @name %>/<%= @id %>/delete').
     addClass('target').
@@ -39,16 +44,23 @@ $(function(){
   <body>
     <div class='header'>
       <div class="headers">
-        <b>To: </b><%= @to %><br>
+	<% if @link then %>
+          <b>To: </b><%= @to %><br>
+        <% end %> 
         <b>From: </b><%= @from %><br>
         <b>Subject: </b><%= @subject %><br>
       </div>
       <div class="menu">
         <a id="help"></a>&nbsp;
-        <a id="list"></a>&nbsp;
-        <a id="movetop"></a>&nbsp;
-        <a id="disptext"></a>&nbsp;
-        <a id="delete"></a>&nbsp;
+	<% if @link then %>
+          <a id="list"></a>&nbsp;
+          <a id="movetop"></a>&nbsp;
+          <a id="disptext"></a>&nbsp;
+        <% end %>
+	<% if @link then %>
+          <a id="link"></a>&nbsp;
+          <a id="delete"></a>&nbsp;
+        <% end %>
       </div>
       <br clear="all">
     </div>

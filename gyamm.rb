@@ -12,11 +12,11 @@ require 'gyamm/delete'
 require 'gyamm/lib'
 require 'gyamm/lock'
 
-#
-# Basic認証のためのヘルパー
-# (ヘルパーにする必要があるのか不明)
-#
 helpers do
+  #
+  # Basic認証のためのヘルパー
+  # (ヘルパーにする必要があるのか不明)
+  #
   def protected!(name)
     unless authorized?(name)
       response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
@@ -32,21 +32,23 @@ helpers do
   end
 end
 
+get %r{/([0-9a-f]{32})$} do |link| # e.g. http://gyamm.com/e2cf57e59b4aa5eebc9ecd21b92bd86e
+  link_html(link)
+end
+
 get '/:name' do |name|
   protected!(name)
-  list_html(name)
-#  disp_list(name) # in gyamm/lib.rb
+  list_html(name) # in gyamm/lib.rb
 end
 
 get '/:name/' do |name|
   protected!(name)
   list_html(name)
-#  disp_list(name)
 end
 
 get '/:name/recover' do |name|
   protected!(name)
-  listfile = "#{ROOTDIR}/data/#{name}/deletefiles"
+  listfile = "#{datadir(name)}/deletefiles"
   d = DeleteFiles.new(listfile)
   d.recover
   redirect "/#{name}"
@@ -54,7 +56,6 @@ end
 
 get '/:name/sort' do |name|
   protected!(name)
-#  set_file_time(name)
   touch_all(name)
   redirect "/#{name}"
 end
@@ -69,19 +70,17 @@ get %r{/(\S+)/([0-9]{14})/$} do |name,id|
   message_html(name,id)
 end
 
-# get '/:name/:id/delete' do |name,id|
 get %r{/(\S+)/([0-9]{14})/delete$} do |name,id|
   protected!(name)
-  listfile = "#{ROOTDIR}/data/#{name}/deletefiles"
+  listfile = "#{datadir(name)}/deletefiles"
   d = DeleteFiles.new(listfile)
   d.delete(id)
   redirect "/#{name}"
 end
 
-# get '/:name/:id/text' do |name,id|
 get %r{/(\S+)/([0-9]{14})/text$} do |name,id|
   protected!(name)
-  file = "#{ROOTDIR}/data/#{name}/#{id}"
+  file = datafile(name,id)
   @name = name
   @id = id
   @text = (File.exists?(file) ? File.read(file) : '')
@@ -89,10 +88,9 @@ get %r{/(\S+)/([0-9]{14})/text$} do |name,id|
   erb :text
 end
 
-# get '/:name/:id/top' do |name,id|
 get %r{/(\S+)/([0-9]{14})/top$} do |name,id|
   protected!(name)
-  file = "#{ROOTDIR}/data/#{name}/#{id}"
+  file = datafile(name,id)
   FileUtils.touch(file)
   redirect "/#{name}"
 end

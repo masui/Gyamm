@@ -10,7 +10,7 @@ $LOAD_PATH << '..' unless $LOAD_PATH.include? '..'
 require 'gyamm/config'
 
 class Lock
-  def initialize(name, lockfile="#{ROOTDIR}/data/#{name}/lockfile")
+  def initialize(name, lockfile=datafile(name,'lockfile'))
     @name = name
     @lockfile = lockfile
     getinfo
