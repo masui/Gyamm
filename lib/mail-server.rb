@@ -7,6 +7,8 @@
 # You can redistribute it and/or modify it under the terms of 
 # the GNU General Public License version 2.
 #
+# Modified by Toshiyuki Masui, May 2011
+#
 
 require 'socket'
 require 'etc'
@@ -25,38 +27,16 @@ class MailServer
   include PidModule
   
   def initialize (config)
-    File.open("/tmp/log8","w"){ |f|
-f.puts 1
-f.puts 1.5
-f.puts "abc"
-f.puts @config
-f.puts 111
-f.puts config
     @config = config
-f.puts 2
     $ml_debug = true if @config.debug
-f.puts 3
     @status = :stop
-f.puts 4
     @logger = @config.logger
-f.puts 5
-f.puts @config.bind_address
-f.puts @config.ml_port
-f.puts TCPServer
-      begin
-        @server = TCPServer.new(@config.bind_address, @config.ml_port)
-      rescue => evar
-        f.puts $!
-        f.puts evar
-      end
-
-f.puts 6
-
+    begin
+      @server = TCPServer.new(@config.bind_address, @config.ml_port)
+    rescue => evar
+    end
     log_file = (config[:log_dir].path + Logger::LOG_FILE).to_s
-f.puts 7
     @logger = Logger.new(log_file, config[:verbose_mode])
-f.puts 8
-    }
   end
   
   def start
@@ -114,8 +94,6 @@ f.puts 8
 end
 
 if $0 == __FILE__
-#  require 'qwik/test-module-ml'
-#  require 'qwik/config'
   $test = true
 end
 
