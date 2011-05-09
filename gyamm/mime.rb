@@ -10,6 +10,19 @@
 require 'nkf'
 require 'base64'
 
+class String
+  EscapeTable = {
+    "&" => "&amp;",
+    '"' => "&quot;",
+    '<' => "&lt;",
+    '>' => "&gt;",
+  }
+  def escapeHTML
+    string = self
+    return string.gsub(/[&"<>]/n) {|x| EscapeTable[x] }
+  end
+end
+
 class Mime
   def initialize
     @header = []     # @header = [['Date', 'Mon, 02 May 2011 07:44:13 +0900'], ...]
@@ -296,7 +309,7 @@ class Mime
           if child['Content-Type'] =~ /multipart/ then
             mail.html += _dump(child,cacheurl)
           elsif child['Content-Type'] =~ /text\/plain/ then
-            mail.html += ("<pre>" + NKF.nkf("-w",child.decode_body) + "</pre>\n")
+            mail.html += ("<pre>" + NKF.nkf("-w",child.decode_body).escapeHTML + "</pre>\n")
           elsif child['Content-Type'] =~ /text\/html/ then
             mail.html += child.decode_body
           else # たぶん添付ファイル
@@ -320,7 +333,7 @@ class Mime
       end
     else
       if mail['Content-Type'] =~ /text\/plain/ || mail['Content-Type'].nil? then
-        mail.html += "<pre>" + NKF.nkf('-w',mail.decode_body) + "</pre>\n"
+        mail.html += "<pre>" + NKF.nkf('-w',mail.decode_body).escapeHTML + "</pre>\n"
       else
         mail.html += NKF.nkf('-w',mail.decode_body)
       end
