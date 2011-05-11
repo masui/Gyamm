@@ -299,7 +299,7 @@ class Mime
         # 代表を決める
         rep = 0
         mail.data.each_with_index { |child,i|
-          if child['Content-Type'] !~ /text\/plain/ then
+          if child['Content-Type'] !~ /text\/plain/i then
             rep = i
           end
         }
@@ -308,7 +308,7 @@ class Mime
         mail.data.each { |child|
           if child['Content-Type'] =~ /multipart/ then
             mail.html += _dump(child,cacheurl)
-          elsif child['Content-Type'] =~ /text\/plain/ then
+          elsif child['Content-Type'] =~ /text\/plain/i then
             mail.html += ("<pre>" + NKF.nkf("-w",child.decode_body).escapeHTML + "</pre>\n")
           elsif child['Content-Type'] =~ /text\/html/ then
             mail.html += child.decode_body
@@ -332,7 +332,7 @@ class Mime
         }
       end
     else
-      if mail['Content-Type'] =~ /text\/plain/ || mail['Content-Type'].nil? then
+      if mail['Content-Type'] =~ /text\/plain/i || mail['Content-Type'].nil? then
         mail.html += "<pre>" + NKF.nkf('-w',mail.decode_body).escapeHTML + "</pre>\n"
       else
         mail.html += NKF.nkf('-w',mail.decode_body)
