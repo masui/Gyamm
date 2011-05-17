@@ -45,7 +45,18 @@ class Processor
   end
 
   def process_recipient(recipient)
-    path = @config[:gyamm_datadir] + "/" + MailAddress.name(recipient)
+    name = MailAddress.name(recipient)
+
+    return if name == 'example && @mail.mail_from != 'masui@pitecan.com'
+    return if @mail.mail_from == 'busybee@blogtrottr.com' # 2ch headline
+    return if @mail.mail_from == 'bounces@blogtrottr.com'
+    return if @mail.mail_from == 'tayori@www.welcome.city.yokohama.jp'
+    return if @mail.mail_from =~ /feedmyinbox\.com/
+    return if @mail.mail_from =~ /atode\.cc/
+    return if @mail.mail_from =~ /merumo\.ne\.jp/
+
+    # return if name == 'example' # spam???
+    path = @config[:gyamm_datadir] + "/" + name
     Pathname.new(path).check_directory
     Pathname.new(path).chmod(0777) # Web‚©‚ç‘‚«‚İ‚Å‚«‚é‚æ‚¤‚É
 
@@ -54,7 +65,7 @@ class Processor
     # Lock/Unlockˆ—
     # Subject: lock password  ==> Basic”FØİ’è
     # Subject: unlock         ==> ”FØ‰ğœ
-    name = MailAddress.name(recipient)
+
     if @mail['Subject'] =~ /^(un)?lock(:)?\s*$/i then
       lock = Lock.new(name)
       lock.unlock(@mail.mail_from)
