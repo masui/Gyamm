@@ -46,14 +46,15 @@ class Processor
 
   def process_recipient(recipient)
     name = MailAddress.name(recipient)
+    from = @mail.mail_from
 
-    return if name == 'example && @mail.mail_from != 'masui@pitecan.com'
-    return if @mail.mail_from == 'busybee@blogtrottr.com' # 2ch headline
-    return if @mail.mail_from == 'bounces@blogtrottr.com'
-    return if @mail.mail_from == 'tayori@www.welcome.city.yokohama.jp'
-    return if @mail.mail_from =~ /feedmyinbox\.com/
-    return if @mail.mail_from =~ /atode\.cc/
-    return if @mail.mail_from =~ /merumo\.ne\.jp/
+    return if name == 'example' && from != 'masui@pitecan.com'
+    return if from == 'busybee@blogtrottr.com' # 2ch headline
+    return if from == 'bounces@blogtrottr.com'
+    return if from == 'tayori@www.welcome.city.yokohama.jp'
+    return if from =~ /feedmyinbox\.com/
+    return if from =~ /atode\.cc/
+    return if from =~ /merumo\.ne\.jp/
 
     # return if name == 'example' # spam???
     path = @config[:gyamm_datadir] + "/" + name
@@ -68,15 +69,15 @@ class Processor
 
     if @mail['Subject'] =~ /^(un)?lock(:)?\s*$/i then
       lock = Lock.new(name)
-      lock.unlock(@mail.mail_from)
+      lock.unlock(from)
       return
     elsif @mail['Subject'] =~ /^lock:?\s*(\w+)/i then
       gyamm = Gyamm.new(name)
       # 最初にメールを送った人だけロックをかけられる
-      if gyamm.from(gyamm.ids[0]) == @mail.mail_from then
+      if gyamm.from(gyamm.ids[0]) == from then
         password = $1
         lock = Lock.new(name)
-        lock.lock(@mail.mail_from, password)
+        lock.lock(from, password)
       end
       return
     end
