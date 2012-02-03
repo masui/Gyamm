@@ -120,7 +120,8 @@ class Mime
   def filename
     f = filename_from_content_disposition
     return f if f && f != ''
-    return filename_from_content_type
+    f = filename_from_content_type
+    return f
   end
 
   #
@@ -141,6 +142,10 @@ class Mime
   # これはRFC2231とかいうやつで、頑張ってデコードしなきゃ駄目らしい
   # http://www.atmarkit.co.jp/fnetwork/rensai/netpro04/netpro01.html
   # http://www.emaillab.org/win-mailer/exp-japanese.html
+  #
+  # こんなのがあった
+  # Content-Disposition: attachment; filename=
+  #      "=?iso-2022-jp?B?GyRCJVMlOCVlJSIlaSUkJTwhPCU3JWclc0NmNFYyXUJqGyhCLnBkZg==?="
   #
   def filename_from_content_disposition
     s = self['Content-Disposition']
@@ -181,6 +186,8 @@ class Mime
         end
         num += 1
       end
+    elsif s =~ /filename=\n.*"(.*)"/ then # 何故かfilename=の後に改行があるもの
+      name = $1
     end
     return decode ? NKF.nkf('-w',decode_percent_hex(name)) : name
   end
@@ -280,6 +287,7 @@ class Mime
       if filename && filename != '' then
         filename = NKF.nkf("-w",filename)
         filename.gsub!(/\?/,'QQ')
+        filename.gsub!(/\)/,'PAR')
         File.open(tmpdir+"/"+filename,"w"){ |f|
           f.print mail.decode_body
         }
@@ -320,8 +328,9 @@ class Mime
           elsif child['Content-Type'] =~ /text\/html/ then
             mail.html += child.decode_body
           else # たぶん添付ファイル
-            filename = NKF.nkf("-w",child.filename)
+            filename = NKF.nkf("-w",child.filename.to_s)
             filename.gsub!(/\?/,'QQ')
+            filename.gsub!(/\)/,'PAR')
             mail.html += "<span style='color:green'>▶</span> <a href='#{cacheurl}/#{filename}'>#{filename}</a><br>"
             #mail.html += "<span style='color:green'>▶</span> <a href='#{cacheurl}/#{child.filename}'>#{child.filename}</a><br>"
           end
