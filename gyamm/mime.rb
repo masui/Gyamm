@@ -118,7 +118,9 @@ class Mime
   end
 
   def filename
-    filename_from_content_disposition || filename_from_content_type
+    f = filename_from_content_disposition
+    return f if f && f != ''
+    return filename_from_content_type
   end
 
   #
@@ -271,8 +273,13 @@ class Mime
       }
     else
       cid = mail['Content-ID']
+###      puts "disposition=#{mail.filename_from_content_disposition}"
+###      puts "fromcontent=#{mail.filename_from_content_type}"
+
       filename = mail.filename
-      if filename then
+      if filename && filename != '' then
+        filename = NKF.nkf("-w",filename)
+        filename.gsub!(/\?/,'QQ')
         File.open(tmpdir+"/"+filename,"w"){ |f|
           f.print mail.decode_body
         }
@@ -313,7 +320,10 @@ class Mime
           elsif child['Content-Type'] =~ /text\/html/ then
             mail.html += child.decode_body
           else # たぶん添付ファイル
-            mail.html += "<span style='color:green'>▶</span> <a href='#{cacheurl}/#{child.filename}'>#{child.filename}</a><br>"
+            filename = NKF.nkf("-w",child.filename)
+            filename.gsub!(/\?/,'QQ')
+            mail.html += "<span style='color:green'>▶</span> <a href='#{cacheurl}/#{filename}'>#{filename}</a><br>"
+            #mail.html += "<span style='color:green'>▶</span> <a href='#{cacheurl}/#{child.filename}'>#{child.filename}</a><br>"
           end
         }
       elsif mail['Content-Type'] =~ /multipart\/related/ then
