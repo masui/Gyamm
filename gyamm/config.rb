@@ -1,6 +1,6 @@
 require 'digest/md5'
 
-ROOTDIR = "/Users/masui/Gyamm"
+ROOTDIR = "/home/masui/Gyamm"
 
 def datadir(name=nil)
   name ? "#{ROOTDIR}/data/#{name}" : "#{ROOTDIR}/data"

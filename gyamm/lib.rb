@@ -81,10 +81,6 @@ class Gyamm
 end
 
 def message_html(name,id,link=false)
-  File.open("/tmp/name","w"){ |f|
-    f.puts name
-    f.puts id
-  }
   gyamm = Gyamm.new(name)
   file = gyamm.path(id)
   text = (File.exists?(file) ? File.read(file) : '')

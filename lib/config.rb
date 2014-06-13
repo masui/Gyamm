@@ -43,7 +43,7 @@ class Config
     :log_dir		=> '/var/log/gyamm',
     :pid_file	=> '/var/run/gyamm.pid',
 
-    :gyamm_datadir => '/Users/masui/Gyamm/data',
+    :gyamm_datadir => '/home/masui/Gyamm/data',
 
   }
   
