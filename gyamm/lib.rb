@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8-emacs -*-
 $LOAD_PATH << '..' unless $LOAD_PATH.include? '..'
 
 require 'gyamm/config'

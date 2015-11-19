@@ -280,10 +280,15 @@ class Mime
       }
     else
       cid = mail['Content-ID']
+      return unless cid
 ###      puts "disposition=#{mail.filename_from_content_disposition}"
 ###      puts "fromcontent=#{mail.filename_from_content_type}"
 
       filename = mail.filename
+      if filename.to_s == '' # filenameが無い場合があるので
+        @fileno = @fileno.to_i + 1
+        filename = "filename#{@fileno}"
+      end
       if filename && filename != '' then
         filename = NKF.nkf("-w",filename)
         filename.gsub!(/\?/,'QQ')
@@ -332,17 +337,26 @@ class Mime
             filename.gsub!(/\?/,'QQ')
             filename.gsub!(/\)/,'PAR')
             mail.html += "<span style='color:green'>▶</span> <a href='#{cacheurl}/#{filename}'>#{filename}</a><br>"
-            #mail.html += "<span style='color:green'>▶</span> <a href='#{cacheurl}/#{child.filename}'>#{child.filename}</a><br>"
           end
         }
       elsif mail['Content-Type'] =~ /multipart\/related/ then
         mail.data.each { |child|
           if child['Content-Disposition'] =~ /inline/ then
             # ファイルはインラインで表示される
+          elsif child['Content-Type'] =~ /image/ then # たぶん添付画像
+            if filename.to_s != ''
+              filename = NKF.nkf("-w",child.filename.to_s)
+              filename.gsub!(/\?/,'QQ')
+              filename.gsub!(/\)/,'PAR')
+              mail.html += "<span style='color:green'>▶</span> <a href='#{cacheurl}/#{filename}'>#{filename}</a><br>"
+            end
           else
             html = child.decode_body
             while html =~ /"(cid:([^"]+))"/ do
-              filename = "#{cacheurl}/#{@cid2file[$2]}"
+              filename = "#{cacheurl}/#{cid2file[$2]}"
+              File.open("/tmp/cid","a"){ |f|
+                f.puts filename
+              }
               cidstr = $1
               html.gsub!(/#{Regexp.escape(cidstr)}/,"#{filename}")
             end
